@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlaywrightArc — Katalon Import Center</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0d10;
+  --bg2: #11141a;
+  --bg3: #181c24;
+  --bg4: #1f242e;
+  --bg5: #252b38;
+  --border: #252b38;
+  --border2: #2f3848;
+  --text: #dde2ee;
+  --text2: #8c96aa;
+  --text3: #4d5669;
+  --accent: #00e5a0;
+  --accent2: #00b87d;
+  --accent-dim: rgba(0,229,160,0.08);
+  --accent-glow: rgba(0,229,160,0.15);
+  --blue: #4d9fff;
+  --blue-dim: rgba(77,159,255,0.1);
+  --orange: #ff8c42;
+  --orange-dim: rgba(255,140,66,0.1);
+  --red: #ff4d6a;
+  --red-dim: rgba(255,77,106,0.1);
+  --yellow: #ffd166;
+  --yellow-dim: rgba(255,209,102,0.1);
+  --purple: #a855f7;
+  --purple-dim: rgba(168,85,247,0.1);
+  --r: 6px;
+  --r2: 10px;
+  --r3: 14px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  height: 48px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 14px;
+  flex-shrink: 0; z-index: 50;
+}
+.logo {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px;
+  color: var(--accent); letter-spacing: -0.5px;
+  display: flex; align-items: center; gap: 7px;
+}
+.logo-icon {
+  width: 22px; height: 22px; background: var(--accent); border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  color: #000; font-size: 11px; font-weight: 900;
+}
+.sep { width: 1px; height: 18px; background: var(--border2); }
+.page-title {
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+  color: var(--text2); letter-spacing: 0.3px;
+}
+.page-title strong { color: var(--text); }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+.btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 13px; border-radius: var(--r); border: none;
+  cursor: pointer; font-family: 'Instrument Sans', sans-serif;
+  font-size: 12px; font-weight: 500; transition: all 0.14s;
+}
+.btn-ghost { background: transparent; color: var(--text2); border: 1px solid transparent; }
+.btn-ghost:hover { background: var(--bg3); color: var(--text); }
+.btn-outline { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+.btn-outline:hover { border-color: var(--border2); color: var(--text); }
+.btn-primary { background: var(--accent); color: #000; font-weight: 700; border: 1px solid transparent; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(77,159,255,0.25); }
+.btn-blue:hover { background: rgba(77,159,255,0.16); }
+
+/* ── LAYOUT ── */
+.main {
+  flex: 1; display: flex; overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 220px; flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 16px 0;
+}
+.sidebar-section { margin-bottom: 4px; }
+.sidebar-label {
+  font-size: 10px; font-weight: 700; color: var(--text3);
+  letter-spacing: 0.8px; text-transform: uppercase;
+  padding: 4px 16px 8px;
+}
+.sidebar-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 16px; cursor: pointer;
+  color: var(--text2); font-size: 12px; font-weight: 500;
+  border-left: 2px solid transparent;
+  transition: all 0.12s;
+}
+.sidebar-item:hover { background: var(--bg3); color: var(--text); }
+.sidebar-item.active {
+  background: var(--accent-dim); color: var(--accent);
+  border-left-color: var(--accent);
+}
+.sidebar-item .icon { font-size: 14px; width: 18px; text-align: center; }
+.sidebar-badge {
+  margin-left: auto; font-size: 10px; font-weight: 700;
+  background: var(--bg4); color: var(--text3);
+  padding: 1px 6px; border-radius: 10px;
+}
+.sidebar-badge.warn { background: var(--yellow-dim); color: var(--yellow); }
+.sidebar-badge.error { background: var(--red-dim); color: var(--red); }
+.sidebar-badge.ok { background: var(--accent-dim); color: var(--accent); }
+
+/* ── CONTENT ── */
+.content {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+}
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ══ UPLOAD VIEW ══ */
+.upload-view {
+  max-width: 760px; margin: 0 auto;
+  padding: 48px 32px;
+}
+.upload-hero {
+  text-align: center; margin-bottom: 48px;
+}
+.upload-kicker {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-dim); border: 1px solid rgba(0,229,160,0.2);
+  color: var(--accent); padding: 4px 12px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+  text-transform: uppercase; margin-bottom: 18px;
+}
+.upload-hero h1 {
+  font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800;
+  color: var(--text); line-height: 1.15; margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
+.upload-hero h1 em { color: var(--accent); font-style: normal; }
+.upload-hero p { color: var(--text2); font-size: 14px; line-height: 1.7; max-width: 480px; margin: 0 auto; }
+
+.drop-zone {
+  border: 2px dashed var(--border2);
+  border-radius: var(--r3);
+  padding: 52px 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg2);
+  position: relative;
+  margin-bottom: 24px;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+.drop-icon {
+  font-size: 44px; margin-bottom: 14px;
+  display: block; opacity: 0.6;
+}
+.drop-title {
+  font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+  color: var(--text); margin-bottom: 6px;
+}
+.drop-sub { font-size: 12px; color: var(--text3); line-height: 1.6; }
+.drop-sub strong { color: var(--text2); }
+.drop-input { display: none; }
+.drop-or {
+  margin: 20px 0; font-size: 11px; color: var(--text3);
+  display: flex; align-items: center; gap: 10px;
+}
+.drop-or::before, .drop-or::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+.format-cards {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  margin-bottom: 32px;
+}
+.format-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 14px;
+  cursor: pointer; transition: all 0.14s;
+}
+.format-card:hover { border-color: var(--border2); background: var(--bg3); }
+.format-card.selected {
+  border-color: var(--accent); background: var(--accent-dim);
+}
+.format-card-icon { font-size: 22px; margin-bottom: 6px; }
+.format-card-name {
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+  color: var(--text); margin-bottom: 3px;
+}
+.format-card-desc { font-size: 11px; color: var(--text3); line-height: 1.5; }
+
+/* ══ SCANNING VIEW ══ */
+.scan-view { padding: 40px 48px; max-width: 900px; margin: 0 auto; }
+.scan-header { margin-bottom: 32px; }
+.scan-header h2 {
+  font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800;
+  color: var(--text); margin-bottom: 6px;
+}
+.scan-header p { color: var(--text2); font-size: 13px; }
+
+.scan-progress-wrap {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 24px; margin-bottom: 20px;
+}
+.scan-phase {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.scan-phase:last-child { border-bottom: none; }
+.scan-phase-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+  background: var(--bg4);
+}
+.scan-phase-icon.done { background: var(--accent-dim); color: var(--accent); }
+.scan-phase-icon.active { background: var(--blue-dim); color: var(--blue); animation: pulse-icon 1s ease-in-out infinite; }
+.scan-phase-icon.pending { color: var(--text3); }
+@keyframes pulse-icon { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+.scan-phase-label { flex: 1; }
+.scan-phase-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.scan-phase-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.scan-phase-status {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  padding: 2px 8px; border-radius: 4px;
+}
+.status-done { background: var(--accent-dim); color: var(--accent); }
+.status-active { background: var(--blue-dim); color: var(--blue); }
+.status-pending { background: var(--bg4); color: var(--text3); }
+
+.progress-bar-wrap {
+  background: var(--bg4); border-radius: 4px; height: 6px;
+  margin-top: 20px; overflow: hidden;
+}
+.progress-bar {
+  height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent));
+  border-radius: 4px; transition: width 0.4s ease;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.scan-log-wrap {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 14px;
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  height: 160px; overflow-y: auto;
+}
+.scan-log-line {
+  padding: 2px 0; color: var(--text3);
+  animation: fade-in-line 0.2s ease-out;
+  display: flex; gap: 10px;
+}
+@keyframes fade-in-line { from { opacity: 0; } to { opacity: 1; } }
+.scan-log-line .ts { color: var(--text3); }
+.scan-log-line.ok .msg { color: var(--accent); }
+.scan-log-line.warn .msg { color: var(--yellow); }
+.scan-log-line.info .msg { color: var(--blue); }
+.scan-log-line.err .msg { color: var(--red); }
+
+/* ══ COMPATIBILITY VIEW ══ */
+.compat-view { padding: 32px 40px; }
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.section-title {
+  font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800;
+  color: var(--text);
+}
+.section-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+/* SCORE */
+.score-grid {
+  display: grid; grid-template-columns: 260px 1fr; gap: 16px;
+  margin-bottom: 24px;
+}
+.score-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r3); padding: 24px;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center;
+}
+.score-ring {
+  width: 110px; height: 110px; position: relative;
+  margin-bottom: 14px;
+}
+.score-ring svg { transform: rotate(-90deg); }
+.score-ring-bg { fill: none; stroke: var(--bg4); stroke-width: 8; }
+.score-ring-fill {
+  fill: none; stroke: var(--accent); stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 283; stroke-dashoffset: 283;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);
+}
+.score-ring-fill.warning { stroke: var(--yellow); }
+.score-ring-fill.danger { stroke: var(--red); }
+.score-num {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--text);
+}
+.score-label { font-size: 11px; color: var(--text3); margin-top: 0; }
+.score-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text); }
+.score-desc { font-size: 11px; color: var(--text2); margin-top: 4px; line-height: 1.5; }
+
+.score-breakdown {
+  display: flex; flex-direction: column; gap: 10px; justify-content: center;
+}
+.breakdown-row {
+  display: flex; align-items: center; gap: 12px;
+}
+.breakdown-label { font-size: 12px; color: var(--text2); min-width: 140px; }
+.breakdown-bar-wrap { flex: 1; background: var(--bg4); border-radius: 3px; height: 6px; }
+.breakdown-bar { height: 100%; border-radius: 3px; transition: width 1s ease; }
+.bar-green { background: var(--accent); }
+.bar-yellow { background: var(--yellow); }
+.bar-red { background: var(--red); }
+.bar-blue { background: var(--blue); }
+.breakdown-val { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); min-width: 40px; text-align: right; }
+
+/* ASSET TABLE */
+.asset-summary {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  margin-bottom: 24px;
+}
+.asset-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 16px;
+  cursor: pointer; transition: all 0.14s;
+}
+.asset-card:hover { border-color: var(--border2); }
+.asset-card.selected { border-color: var(--accent); background: var(--accent-dim); }
+.asset-card-count {
+  font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
+  color: var(--text); margin-bottom: 2px;
+}
+.asset-card-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.asset-card-sub { font-size: 11px; margin-top: 6px; display: flex; gap: 6px; }
+.chip { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+.chip-ok { background: var(--accent-dim); color: var(--accent); }
+.chip-warn { background: var(--yellow-dim); color: var(--yellow); }
+.chip-err { background: var(--red-dim); color: var(--red); }
+.chip-blue { background: var(--blue-dim); color: var(--blue); }
+
+/* ITEMS TABLE */
+.items-table-wrap {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r2); overflow: hidden; margin-bottom: 24px;
+}
+.items-table-header {
+  display: grid; padding: 10px 16px;
+  background: var(--bg3); border-bottom: 1px solid var(--border);
+  font-size: 10px; font-weight: 700; color: var(--text3);
+  letter-spacing: 0.6px; text-transform: uppercase;
+}
+.items-table-row {
+  display: grid; padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: center; transition: background 0.1s;
+}
+.items-table-row:last-child { border-bottom: none; }
+.items-table-row:hover { background: var(--bg3); }
+
+.col-5 { grid-template-columns: 2fr 1fr 1fr 1.5fr 100px; }
+
+.item-name {
+  font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text);
+  display: flex; align-items: center; gap: 6px;
+}
+.item-type { font-size: 11px; color: var(--text3); }
+.item-status { }
+.status-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 4px;
+  font-size: 10px; font-weight: 700; font-family: 'DM Mono', monospace;
+}
+.pill-ok { background: var(--accent-dim); color: var(--accent); }
+.pill-warn { background: var(--yellow-dim); color: var(--yellow); }
+.pill-err { background: var(--red-dim); color: var(--red); }
+.pill-skip { background: var(--bg4); color: var(--text3); }
+
+.confidence-bar-wrap { background: var(--bg4); border-radius: 3px; height: 5px; overflow: hidden; }
+.confidence-bar { height: 100%; border-radius: 3px; }
+
+.item-action-btn {
+  padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border);
+  background: transparent; color: var(--text3); font-size: 11px; cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif; transition: all 0.1s;
+}
+.item-action-btn:hover { background: var(--bg4); color: var(--text); }
+
+/* ══ MAPPING VIEW ══ */
+.mapping-view { padding: 32px 40px; }
+.mapping-grid {
+  display: grid; grid-template-columns: 1fr 48px 1fr; gap: 0;
+  align-items: start;
+}
+.mapping-col-header {
+  font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.8px;
+  text-transform: uppercase; padding: 8px 14px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--r) var(--r) 0 0;
+}
+.mapping-mid-header {
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px; background: var(--bg3);
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  font-size: 10px; color: var(--text3);
+}
+.mapping-col-body {
+  border: 1px solid var(--border); border-top: none;
+  border-radius: 0 0 var(--r) var(--r);
+}
+.mapping-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 14px; border-bottom: 1px solid var(--border);
+}
+.mapping-row:last-child { border-bottom: none; }
+.mapping-source {
+  font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2);
+  flex: 1;
+}
+.mapping-arrow-col {
+  border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+}
+.mapping-arrow-body {
+  border: none; border-radius: 0;
+}
+.mapping-arrow-row {
+  display: flex; align-items: center; justify-content: center;
+  padding: 9px 4px; border-bottom: 1px solid var(--border);
+  color: var(--text3); font-size: 12px;
+}
+.mapping-arrow-row:last-child { border-bottom: none; }
+.mapping-target {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  flex: 1;
+}
+.mapping-target.ok { color: var(--accent); }
+.mapping-target.warn { color: var(--yellow); }
+.mapping-target.manual { color: var(--text3); font-style: italic; }
+.mapping-status-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.dot-ok { background: var(--accent); }
+.dot-warn { background: var(--yellow); }
+.dot-err { background: var(--red); }
+.dot-skip { background: var(--text3); }
+
+/* ══ REPORT VIEW ══ */
+.report-view { padding: 32px 40px; }
+.report-top {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;
+  margin-bottom: 28px;
+}
+.report-kpi {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 18px 20px;
+}
+.report-kpi-val {
+  font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800;
+  color: var(--text); line-height: 1;
+}
+.report-kpi-val.green { color: var(--accent); }
+.report-kpi-val.yellow { color: var(--yellow); }
+.report-kpi-val.red { color: var(--red); }
+.report-kpi-label { font-size: 11px; color: var(--text3); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.report-kpi-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
+
+.warnings-list {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r2); overflow: hidden; margin-bottom: 20px;
+}
+.warnings-header {
+  padding: 12px 16px; background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.warn-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+}
+.warn-item:last-child { border-bottom: none; }
+.warn-icon { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
+.warn-body { flex: 1; }
+.warn-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.warn-desc { font-size: 11px; color: var(--text3); line-height: 1.5; }
+.warn-action {
+  font-size: 11px; color: var(--blue); cursor: pointer;
+  margin-top: 4px; display: inline-block;
+}
+.warn-action:hover { text-decoration: underline; }
+.warn-severity { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+
+.remediation-box {
+  background: var(--bg2); border: 1px solid rgba(0,229,160,0.2);
+  border-radius: var(--r2); padding: 20px; margin-bottom: 20px;
+}
+.remediation-title {
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+  color: var(--accent); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+.remediation-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 0; font-size: 12px; color: var(--text2);
+}
+.remediation-item::before { content: '→'; color: var(--accent2); flex-shrink: 0; font-size: 13px; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border2); }
+
+/* ── FOOTER BAR ── */
+.footer-bar {
+  height: 44px; background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 10px;
+  flex-shrink: 0;
+}
+.footer-step {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--text3);
+}
+.footer-step.active { color: var(--text); font-weight: 500; }
+.footer-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border2);
+}
+.footer-dot.done { background: var(--accent); }
+.footer-dot.active { background: var(--blue); }
+
+.ai-badge {
+  margin-left: auto; display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--text3);
+  background: var(--bg3); padding: 3px 10px; border-radius: 20px;
+  border: 1px solid var(--border);
+}
+.ai-badge span { color: var(--accent); font-weight: 700; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 60px; right: 20px; z-index: 1000;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--r2); padding: 10px 16px;
+  font-size: 12px; color: var(--text);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  animation: toast-in 0.2s ease-out;
+  max-width: 320px;
+}
+@keyframes toast-in { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+/* AI LOADING */
+.ai-spinner {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid var(--accent-dim); border-top-color: var(--accent);
+  animation: spin 0.7s linear infinite; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">▶</div>
+    PlaywrightArc
+  </div>
+  <div class="sep"></div>
+  <div class="page-title">Import Center — <strong>Katalon Migration</strong></div>
+  <div class="topbar-right">
+    <button class="btn btn-ghost" onclick="showToast('📖 Migration docs opening…')">Docs</button>
+    <button class="btn btn-outline" id="btnBack" onclick="goBack()" style="display:none">← Back</button>
+    <button class="btn btn-primary" id="btnNext" onclick="goNext()">Scan Project →</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Import Steps</div>
+      <div class="sidebar-item active" id="nav-upload" onclick="goToStep(0)">
+        <span class="icon">①</span> Upload Project
+      </div>
+      <div class="sidebar-item" id="nav-scan" onclick="">
+        <span class="icon">②</span> Pre-Import Scan
+      </div>
+      <div class="sidebar-item" id="nav-compat" onclick="">
+        <span class="icon">③</span> Compatibility
+        <span class="sidebar-badge" id="badge-compat">–</span>
+      </div>
+      <div class="sidebar-item" id="nav-mapping" onclick="">
+        <span class="icon">④</span> Mapping Preview
+      </div>
+      <div class="sidebar-item" id="nav-report" onclick="">
+        <span class="icon">⑤</span> Migration Report
+        <span class="sidebar-badge warn" id="badge-report" style="display:none">!</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section" style="margin-top: auto; padding: 0 0 8px;">
+      <div class="sidebar-label">Previous Imports</div>
+      <div class="sidebar-item" onclick="showToast('Loading import history…')">
+        <span class="icon">📁</span> E-Commerce Suite
+        <span class="sidebar-badge ok">Done</span>
+      </div>
+      <div class="sidebar-item" onclick="showToast('Loading import history…')">
+        <span class="icon">📁</span> Auth Regression
+        <span class="sidebar-badge warn">Partial</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content">
+
+    <!-- ══ STEP 0: UPLOAD ══ -->
+    <div class="view active upload-view" id="view-upload">
+      <div class="upload-hero">
+        <div class="upload-kicker">✦ Katalon Migration</div>
+        <h1>Import your Katalon project<br>into <em>PlaywrightArc</em></h1>
+        <p>Upload a Katalon project folder or .zip archive. We'll scan, analyze, and convert your test assets — preserving structure, locators, and test logic.</p>
+      </div>
+
+      <div class="drop-zone" id="dropZone"
+        ondragover="dzDragOver(event)"
+        ondragleave="dzDragLeave(event)"
+        ondrop="dzDrop(event)"
+        onclick="document.getElementById('fileInput').click()">
+        <span class="drop-icon">📦</span>
+        <div class="drop-title">Drop your Katalon project here</div>
+        <div class="drop-sub">
+          Accepts <strong>.zip</strong>, <strong>.tar.gz</strong> archives or drag a folder<br>
+          Max 500MB — project files only
+        </div>
+        <div class="drop-or">or</div>
+        <button class="btn btn-outline" style="margin: 0 auto; display:inline-flex;" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
+          Browse Files
+        </button>
+      </div>
+      <input type="file" id="fileInput" class="drop-input" accept=".zip,.tar,.gz" onchange="onFileSelect(event)">
+
+      <div style="margin-bottom: 14px;">
+        <div style="font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; margin-bottom: 12px;">Or use a demo project</div>
+        <div class="format-cards">
+          <div class="format-card selected" id="demo-ecomm" onclick="selectDemo('ecomm', this)">
+            <div class="format-card-icon">🛒</div>
+            <div class="format-card-name">E-Commerce Suite</div>
+            <div class="format-card-desc">112 test cases · Full checkout & cart flows · Complex object repo</div>
+          </div>
+          <div class="format-card" id="demo-auth" onclick="selectDemo('auth', this)">
+            <div class="format-card-icon">🔐</div>
+            <div class="format-card-name">Auth & Login Suite</div>
+            <div class="format-card-desc">48 test cases · SSO, MFA, token flows · Mixed Groovy keywords</div>
+          </div>
+          <div class="format-card" id="demo-api" onclick="selectDemo('api', this)">
+            <div class="format-card-icon">⚡</div>
+            <div class="format-card-name">API Test Collection</div>
+            <div class="format-card-desc">67 API tests · REST & GraphQL · Chained requests & auth</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 20px;">
+        <div style="font-size:12px;color:var(--text2);display:flex;align-items:flex-start;gap:10px;">
+          <span style="color:var(--blue);font-size:16px;flex-shrink:0;">ℹ</span>
+          <div>
+            <strong style="color:var(--text);">What gets imported:</strong> Test cases, test suites, object repository, global variables, profiles/environments, test data files, custom keywords (where feasible), and folder structure. A full migration report is generated for anything that needs manual review.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STEP 1: SCANNING ══ -->
+    <div class="view scan-view" id="view-scan">
+      <div class="scan-header">
+        <h2>Scanning Katalon Project…</h2>
+        <p>Analyzing project structure, parsing assets, and checking compatibility.</p>
+      </div>
+
+      <div class="scan-progress-wrap">
+        <div class="scan-phase" id="phase-structure">
+          <div class="scan-phase-icon pending" id="pi-structure">⊙</div>
+          <div class="scan-phase-label">
+            <div class="scan-phase-name">Project Structure</div>
+            <div class="scan-phase-sub" id="ps-structure">Waiting…</div>
+          </div>
+          <span class="scan-phase-status status-pending" id="st-structure">Pending</span>
+        </div>
+        <div class="scan-phase" id="phase-assets">
+          <div class="scan-phase-icon pending" id="pi-assets">⊙</div>
+          <div class="scan-phase-label">
+            <div class="scan-phase-name">Asset Discovery</div>
+            <div class="scan-phase-sub" id="ps-assets">Waiting…</div>
+          </div>
+          <span class="scan-phase-status status-pending" id="st-assets">Pending</span>
+        </div>
+        <div class="scan-phase" id="phase-objects">
+          <div class="scan-phase-icon pending" id="pi-objects">⊙</div>
+          <div class="scan-phase-label">
+            <div class="scan-phase-name">Object Repository</div>
+            <div class="scan-phase-sub" id="ps-objects">Waiting…</div>
+          </div>
+          <span class="scan-phase-status status-pending" id="st-objects">Pending</span>
+        </div>
+        <div class="scan-phase" id="phase-keywords">
+          <div class="scan-phase-icon pending" id="pi-keywords">⊙</div>
+          <div class="scan-phase-label">
+            <div class="scan-phase-name">Custom Keywords &amp; Groovy</div>
+            <div class="scan-phase-sub" id="ps-keywords">Waiting…</div>
+          </div>
+          <span class="scan-phase-status status-pending" id="st-keywords">Pending</span>
+        </div>
+        <div class="scan-phase" id="phase-compat">
+          <div class="scan-phase-icon pending" id="pi-compat">⊙</div>
+          <div class="scan-phase-label">
+            <div class="scan-phase-name">Compatibility Analysis</div>
+            <div class="scan-phase-sub" id="ps-compat">Waiting…</div>
+          </div>
+          <span class="scan-phase-status status-pending" id="st-compat">Pending</span>
+        </div>
+
+        <div class="progress-bar-wrap" style="margin-top:16px;">
+          <div class="progress-bar" id="progressBar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="scan-log-wrap" id="scanLog"></div>
+    </div>
+
+    <!-- ══ STEP 2: COMPATIBILITY ══ -->
+    <div class="view compat-view" id="view-compat">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Compatibility Summary</div>
+          <div class="section-sub">Review which assets can be automatically converted vs. need manual work</div>
+        </div>
+        <button class="btn btn-blue" onclick="goToStep(3)">Preview Mappings →</button>
+      </div>
+
+      <div class="score-grid">
+        <div class="score-card">
+          <div class="score-ring">
+            <svg width="110" height="110" viewBox="0 0 110 110">
+              <circle class="score-ring-bg" cx="55" cy="55" r="45"/>
+              <circle class="score-ring-fill" id="scoreRingFill" cx="55" cy="55" r="45"/>
+            </svg>
+            <div class="score-num">
+              <span id="scoreNum">–</span>
+              <span class="score-label">/ 100</span>
+            </div>
+          </div>
+          <div class="score-title">Migration Score</div>
+          <div class="score-desc">Overall confidence that assets will convert cleanly without manual intervention</div>
+        </div>
+        <div class="score-breakdown" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);padding:24px;">
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:12px;">Breakdown by Category</div>
+          <div class="breakdown-row">
+            <span class="breakdown-label">Test Cases</span>
+            <div class="breakdown-bar-wrap"><div class="breakdown-bar bar-green" id="bar-tc" style="width:0%"></div></div>
+            <span class="breakdown-val" id="val-tc">–</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="breakdown-label">Object Repository</span>
+            <div class="breakdown-bar-wrap"><div class="breakdown-bar bar-green" id="bar-obj" style="width:0%"></div></div>
+            <span class="breakdown-val" id="val-obj">–</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="breakdown-label">Test Suites</span>
+            <div class="breakdown-bar-wrap"><div class="breakdown-bar bar-green" id="bar-ts" style="width:0%"></div></div>
+            <span class="breakdown-val" id="val-ts">–</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="breakdown-label">Custom Keywords</span>
+            <div class="breakdown-bar-wrap"><div class="breakdown-bar bar-yellow" id="bar-kw" style="width:0%"></div></div>
+            <span class="breakdown-val" id="val-kw">–</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="breakdown-label">Global Variables</span>
+            <div class="breakdown-bar-wrap"><div class="breakdown-bar bar-blue" id="bar-gv" style="width:0%"></div></div>
+            <span class="breakdown-val" id="val-gv">–</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="breakdown-label">Profiles/Envs</span>
+            <div class="breakdown-bar-wrap"><div class="breakdown-bar bar-blue" id="bar-env" style="width:0%"></div></div>
+            <span class="breakdown-val" id="val-env">–</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ASSET CARDS -->
+      <div class="asset-summary">
+        <div class="asset-card selected" onclick="filterAssets('all', this)">
+          <div class="asset-card-count" id="ac-total">–</div>
+          <div class="asset-card-label">Total Assets</div>
+          <div class="asset-card-sub">
+            <span class="chip chip-ok" id="ac-ok">–</span>
+            <span class="chip chip-warn" id="ac-warn">–</span>
+            <span class="chip chip-err" id="ac-err">–</span>
+          </div>
+        </div>
+        <div class="asset-card" onclick="filterAssets('test_case', this)">
+          <div class="asset-card-count" id="ac-tc">–</div>
+          <div class="asset-card-label">Test Cases</div>
+          <div class="asset-card-sub"><span class="chip chip-blue">TC</span></div>
+        </div>
+        <div class="asset-card" onclick="filterAssets('object', this)">
+          <div class="asset-card-count" id="ac-obj">–</div>
+          <div class="asset-card-label">Objects</div>
+          <div class="asset-card-sub"><span class="chip chip-blue">OBJ</span></div>
+        </div>
+        <div class="asset-card" onclick="filterAssets('keyword', this)">
+          <div class="asset-card-count" id="ac-kw">–</div>
+          <div class="asset-card-label">Keywords</div>
+          <div class="asset-card-sub"><span class="chip chip-warn">Review</span></div>
+        </div>
+      </div>
+
+      <!-- ITEMS TABLE -->
+      <div class="items-table-wrap">
+        <div class="items-table-header col-5">
+          <span>Asset Name</span><span>Type</span><span>Status</span><span>Confidence</span><span>Action</span>
+        </div>
+        <div id="assetTableBody"></div>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3: MAPPING ══ -->
+    <div class="view mapping-view" id="view-mapping">
+      <div class="section-header" style="margin-bottom:24px;">
+        <div>
+          <div class="section-title">Action Mapping Preview</div>
+          <div class="section-sub">How Katalon actions map to PlaywrightArc equivalents</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="showToast('↩ Mappings reset to defaults')">Reset Mappings</button>
+          <button class="btn btn-primary" onclick="runConversion()">Run Conversion ▶</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+            <span style="background:var(--orange-dim);color:var(--orange);padding:2px 8px;border-radius:4px;font-size:10px;">KATALON</span>
+            Built-in Keywords
+          </div>
+          <div class="items-table-wrap">
+            <div class="items-table-header" style="grid-template-columns:1.5fr 1fr 1fr;display:grid;padding:10px 14px;">
+              <span>Katalon Keyword</span><span>Target</span><span>Status</span>
+            </div>
+            <div id="kwMappingBody"></div>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+            <span style="background:var(--blue-dim);color:var(--blue);padding:2px 8px;border-radius:4px;font-size:10px;">OBJECTS</span>
+            Locator Mapping
+          </div>
+          <div class="items-table-wrap">
+            <div class="items-table-header" style="grid-template-columns:1.5fr 1fr 1fr;display:grid;padding:10px 14px;">
+              <span>Object Name</span><span>Strategy</span><span>Confidence</span>
+            </div>
+            <div id="locMappingBody"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;">
+        <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">✦ AI-Assisted Mapping Suggestions</div>
+        <div id="aiMappingSuggestions" style="font-size:12px;color:var(--text2);line-height:1.7;">
+          <div class="ai-spinner" style="margin:0 auto;display:block;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STEP 4: REPORT ══ -->
+    <div class="view report-view" id="view-report">
+      <div class="section-header" style="margin-bottom:24px;">
+        <div>
+          <div class="section-title">Migration Report</div>
+          <div class="section-sub">Import complete — review results before opening in the designer</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="showToast('📄 Downloading report.pdf…')">Export Report</button>
+          <button class="btn btn-primary" onclick="showToast('✓ Opening in Test Designer…')">Open in Designer →</button>
+        </div>
+      </div>
+
+      <div class="report-top">
+        <div class="report-kpi">
+          <div class="report-kpi-val green" id="rk-converted">–</div>
+          <div class="report-kpi-label">Assets Converted</div>
+          <div class="report-kpi-sub" id="rk-converted-sub">–</div>
+        </div>
+        <div class="report-kpi">
+          <div class="report-kpi-val yellow" id="rk-warnings">–</div>
+          <div class="report-kpi-label">Warnings</div>
+          <div class="report-kpi-sub">Manual review recommended</div>
+        </div>
+        <div class="report-kpi">
+          <div class="report-kpi-val red" id="rk-failed">–</div>
+          <div class="report-kpi-label">Failed / Skipped</div>
+          <div class="report-kpi-sub">Require manual recreation</div>
+        </div>
+      </div>
+
+      <div class="warnings-list">
+        <div class="warnings-header">
+          ⚠ Warnings &amp; Issues
+          <span class="chip chip-warn" id="warn-count-badge">0</span>
+        </div>
+        <div id="warningsList"></div>
+      </div>
+
+      <div class="remediation-box">
+        <div class="remediation-title">✦ AI Remediation Suggestions</div>
+        <div id="remediationList"></div>
+      </div>
+
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;">
+        <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px;">Imported Project Structure</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);line-height:1.9;" id="projectTree"></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- FOOTER -->
+<div class="footer-bar">
+  <div class="footer-step" id="fs-0">
+    <div class="footer-dot active" id="fd-0"></div> Upload
+  </div>
+  <span style="color:var(--text3);">—</span>
+  <div class="footer-step" id="fs-1">
+    <div class="footer-dot" id="fd-1"></div> Scan
+  </div>
+  <span style="color:var(--text3);">—</span>
+  <div class="footer-step" id="fs-2">
+    <div class="footer-dot" id="fd-2"></div> Compatibility
+  </div>
+  <span style="color:var(--text3);">—</span>
+  <div class="footer-step" id="fs-3">
+    <div class="footer-dot" id="fd-3"></div> Mapping
+  </div>
+  <span style="color:var(--text3);">—</span>
+  <div class="footer-step" id="fs-4">
+    <div class="footer-dot" id="fd-4"></div> Report
+  </div>
+
+  <div class="ai-badge">
+    <div class="ai-spinner" style="width:10px;height:10px;border-width:1.5px;display:none;" id="aiGlobalSpinner"></div>
+    ✦ <span>AI</span>-assisted analysis
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let currentStep = 0;
+let selectedDemo = 'ecomm';
+
+const DEMO_DATA = {
+  ecomm: {
+    name: 'E-Commerce Suite',
+    testCases: 112, testSuites: 14, objects: 287, keywords: 23, globalVars: 41, profiles: 3,
+    score: 81,
+    assets: [
+      { name: 'TC_AddToCart_Guest', type: 'test_case', status: 'ok', conf: 96, folder: 'Checkout' },
+      { name: 'TC_Checkout_PayPal', type: 'test_case', status: 'ok', conf: 88, folder: 'Checkout' },
+      { name: 'TC_ProductSearch_Filter', type: 'test_case', status: 'ok', conf: 91, folder: 'Search' },
+      { name: 'TC_Login_Registered', type: 'test_case', status: 'ok', conf: 95, folder: 'Auth' },
+      { name: 'TC_CheckoutWithCoupon', type: 'test_case', status: 'warn', conf: 72, folder: 'Checkout' },
+      { name: 'TC_AdminProductUpload', type: 'test_case', status: 'warn', conf: 61, folder: 'Admin' },
+      { name: 'TC_Flash_Sale_Timer', type: 'test_case', status: 'err', conf: 28, folder: 'Homepage' },
+      { name: 'btn_add_to_cart', type: 'object', status: 'ok', conf: 99, folder: 'Objects/Checkout' },
+      { name: 'input_email', type: 'object', status: 'ok', conf: 97, folder: 'Objects/Auth' },
+      { name: 'div_product_grid', type: 'object', status: 'ok', conf: 85, folder: 'Objects/Search' },
+      { name: 'iframe_payment_widget', type: 'object', status: 'warn', conf: 58, folder: 'Objects/Checkout' },
+      { name: 'KW_WaitForAjax', type: 'keyword', status: 'warn', conf: 55, folder: 'Keywords' },
+      { name: 'KW_ShadowDOMClick', type: 'keyword', status: 'err', conf: 18, folder: 'Keywords' },
+      { name: 'KW_ExtractOrderId', type: 'keyword', status: 'warn', conf: 66, folder: 'Keywords' },
+    ]
+  },
+  auth: {
+    name: 'Auth & Login Suite',
+    testCases: 48, testSuites: 6, objects: 94, keywords: 11, globalVars: 18, profiles: 4,
+    score: 74,
+    assets: [
+      { name: 'TC_Login_Email', type: 'test_case', status: 'ok', conf: 98, folder: 'Auth' },
+      { name: 'TC_Login_SSO_Google', type: 'test_case', status: 'warn', conf: 64, folder: 'SSO' },
+      { name: 'TC_MFA_TOTP', type: 'test_case', status: 'warn', conf: 55, folder: 'MFA' },
+      { name: 'TC_Session_Timeout', type: 'test_case', status: 'ok', conf: 89, folder: 'Auth' },
+      { name: 'btn_login', type: 'object', status: 'ok', conf: 99, folder: 'Objects' },
+      { name: 'KW_HandleOAuth', type: 'keyword', status: 'err', conf: 22, folder: 'Keywords' },
+    ]
+  },
+  api: {
+    name: 'API Test Collection',
+    testCases: 67, testSuites: 9, objects: 12, keywords: 5, globalVars: 28, profiles: 5,
+    score: 93,
+    assets: [
+      { name: 'TC_API_CreateOrder', type: 'test_case', status: 'ok', conf: 97, folder: 'Orders' },
+      { name: 'TC_API_Auth_Bearer', type: 'test_case', status: 'ok', conf: 95, folder: 'Auth' },
+      { name: 'TC_GraphQL_Products', type: 'test_case', status: 'warn', conf: 72, folder: 'GraphQL' },
+      { name: 'TC_API_PaginatedList', type: 'test_case', status: 'ok', conf: 91, folder: 'Orders' },
+      { name: 'KW_ChainRequest', type: 'keyword', status: 'ok', conf: 82, folder: 'Keywords' },
+    ]
+  }
+};
+
+const KW_MAPPINGS = [
+  { from: 'WebUI.click()', to: 'page.click()', status: 'ok' },
+  { from: 'WebUI.setText()', to: 'page.fill()', status: 'ok' },
+  { from: 'WebUI.navigateToUrl()', to: 'page.goto()', status: 'ok' },
+  { from: 'WebUI.verifyElementPresent()', to: 'expect(locator).toBeVisible()', status: 'ok' },
+  { from: 'WebUI.verifyElementText()', to: 'expect(locator).toHaveText()', status: 'ok' },
+  { from: 'WebUI.selectOptionByLabel()', to: 'page.selectOption()', status: 'ok' },
+  { from: 'WebUI.delay()', to: 'page.waitForTimeout()', status: 'ok' },
+  { from: 'WebUI.waitForElementPresent()', to: 'page.waitForSelector()', status: 'ok' },
+  { from: 'WebUI.uploadFile()', to: 'page.setInputFiles()', status: 'warn' },
+  { from: 'WebUI.executeJavaScript()', to: 'page.evaluate()', status: 'warn' },
+  { from: 'WebUI.switchToFrame()', to: 'page.frameLocator()', status: 'warn' },
+  { from: 'WebUI.acceptAlert()', to: 'page.on("dialog")', status: 'warn' },
+  { from: 'Mobile.tap()', to: '⚠ Not supported in MVP', status: 'err' },
+  { from: 'CustomKeyword.run()', to: 'Manual review required', status: 'err' },
+];
+
+const LOC_MAPPINGS = [
+  { name: 'btn_add_to_cart', strategy: 'css → data-testid', conf: 99 },
+  { name: 'input_email', strategy: 'xpath → css', conf: 95 },
+  { name: 'div_product_grid', strategy: 'xpath → css', conf: 87 },
+  { name: 'lbl_cart_badge', strategy: 'text role', conf: 94 },
+  { name: 'iframe_payment', strategy: 'xpath (kept)', conf: 61 },
+  { name: 'btn_checkout', strategy: 'css → data-testid', conf: 98 },
+  { name: 'select_quantity', strategy: 'css label', conf: 91 },
+  { name: 'img_product_thumb', strategy: 'alt text', conf: 79 },
+];
+
+const WARNINGS = [
+  { severity: 'HIGH', title: 'Shadow DOM interaction not convertible', desc: 'KW_ShadowDOMClick uses low-level Groovy reflection to pierce shadow DOM. Playwright has native shadow DOM support — replace with page.locator(">>> selector").', type: 'err' },
+  { severity: 'HIGH', title: 'Flash Sale Timer uses Thread.sleep()', desc: 'TC_Flash_Sale_Timer relies on hardcoded Thread.sleep() calls. Playwright waitForTimeout() is a drop-in but may cause flakiness. Use waitForSelector instead.', type: 'err' },
+  { severity: 'MED', title: 'iframe payment widget locator fragile', desc: 'iframe_payment_widget uses absolute XPath. Playwright frameLocator() is used but locator confidence is 58%. Recommend using stable iframe name/id attributes.', type: 'warn' },
+  { severity: 'MED', title: 'OAuth SSO flow requires manual setup', desc: 'TC_Login_SSO_Google uses browser profile cookies. Playwright supports storageState() for session reuse — requires manual configuration per environment.', type: 'warn' },
+  { severity: 'LOW', title: 'File upload path is absolute', desc: 'TC_AdminProductUpload uses absolute filesystem paths for uploads. Converted to use relative paths from project /fixtures directory.', type: 'warn' },
+];
+
+const REMEDIATION = [
+  'Replace KW_ShadowDOMClick with Playwright native: page.locator("host-el").locator(">>> .target")',
+  'Convert Thread.sleep() calls to page.waitForSelector() with appropriate timeout for Flash Sale tests',
+  'Use Playwright storageState() to persist OAuth sessions across test runs instead of browser profile reuse',
+  'Update iframe_payment_widget locator to use frameLocator("[name=\'payment-frame\']") for stability',
+  'Move fixture file paths to environment variables using the PlaywrightArc environment manager',
+];
+
+// ── NAV ────────────────────────────────────────────────────────────────────────
+const VIEWS = ['upload','scan','compat','mapping','report'];
+const NAV_IDS = ['nav-upload','nav-scan','nav-compat','nav-mapping','nav-report'];
+const BTN_LABELS = ['Scan Project →','View Compatibility →','Preview Mappings →','Run Conversion →','Open in Designer →'];
+
+function goToStep(n) {
+  if (n < 0 || n > 4) return;
+  currentStep = n;
+  VIEWS.forEach((v, i) => {
+    document.getElementById('view-'+v).classList.toggle('active', i === n);
+  });
+  NAV_IDS.forEach((id, i) => {
+    document.getElementById(id).classList.toggle('active', i === n);
+  });
+  // footer dots
+  for (let i = 0; i < 5; i++) {
+    const dot = document.getElementById('fd-'+i);
+    const step = document.getElementById('fs-'+i);
+    dot.className = 'footer-dot' + (i < n ? ' done' : i === n ? ' active' : '');
+    step.className = 'footer-step' + (i === n ? ' active' : '');
+  }
+  document.getElementById('btnNext').textContent = BTN_LABELS[n];
+  document.getElementById('btnBack').style.display = n > 0 ? '' : 'none';
+
+  if (n === 1) startScan();
+  if (n === 2) populateCompat();
+  if (n === 3) populateMapping();
+  if (n === 4) populateReport();
+}
+
+function goNext() { goToStep(currentStep + 1); }
+function goBack() { goToStep(currentStep - 1); }
+
+// ── UPLOAD ─────────────────────────────────────────────────────────────────────
+function selectDemo(key, el) {
+  selectedDemo = key;
+  document.querySelectorAll('.format-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function dzDragOver(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('drag-over'); }
+function dzDragLeave(e) { document.getElementById('dropZone').classList.remove('drag-over'); }
+function dzDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag-over');
+  showToast('📦 Project detected — click Scan Project to continue');
+}
+function onFileSelect(e) {
+  if (e.target.files[0]) showToast(`📦 ${e.target.files[0].name} ready — click Scan Project`);
+}
+
+// ── SCAN ───────────────────────────────────────────────────────────────────────
+const SCAN_PHASES = [
+  { id: 'structure', name: 'structure', label: 'Parsing project.prj and folder hierarchy', msgs: [
+    { t: 'ok', m: 'Found project.prj — Katalon v8.6.5' },
+    { t: 'ok', m: 'Resolved 6 top-level test suite folders' },
+    { t: 'ok', m: 'Detected 14 test suites' },
+    { t: 'info', m: 'Project root: E-Commerce_Suite/' },
+  ]},
+  { id: 'assets', name: 'assets', label: 'Discovering test cases and data files', msgs: [
+    { t: 'ok', m: 'Scanned Scripts/ — 112 test cases found' },
+    { t: 'ok', m: 'Scanned Data Files/ — 8 CSV datasets' },
+    { t: 'warn', m: '2 test cases reference external test data (review needed)' },
+    { t: 'ok', m: 'Global Variable profiles: 3 (default, staging, prod)' },
+  ]},
+  { id: 'objects', name: 'objects', label: 'Parsing Object Repository entries', msgs: [
+    { t: 'ok', m: '287 objects parsed from Object Repository/' },
+    { t: 'ok', m: '204 CSS selectors — direct mapping available' },
+    { t: 'warn', m: '58 XPath selectors — will attempt conversion' },
+    { t: 'err', m: '25 stale/broken selectors detected' },
+    { t: 'ok', m: 'Locator confidence scores assigned' },
+  ]},
+  { id: 'keywords', name: 'keywords', label: 'Analyzing custom Groovy keywords', msgs: [
+    { t: 'ok', m: '23 custom keyword files found' },
+    { t: 'ok', m: '14 keywords map to Playwright built-ins' },
+    { t: 'warn', m: '6 keywords use Groovy-specific APIs — partial conversion' },
+    { t: 'err', m: '3 keywords require manual rewrite (ShadowDOM, Mobile)' },
+  ]},
+  { id: 'compat', name: 'compat', label: 'Computing compatibility and migration score', msgs: [
+    { t: 'info', m: 'Analyzing 41 global variables…' },
+    { t: 'ok', m: 'Environment profiles mapped to PlaywrightArc format' },
+    { t: 'ok', m: 'Migration score computed: 81 / 100' },
+    { t: 'ok', m: 'Scan complete — 324 assets analyzed' },
+  ]},
+];
+
+function startScan() {
+  let phaseIdx = 0;
+  let progress = 0;
+  const log = document.getElementById('scanLog');
+  log.innerHTML = '';
+
+  function runPhase() {
+    if (phaseIdx >= SCAN_PHASES.length) {
+      setTimeout(goNext, 600);
+      return;
+    }
+    const phase = SCAN_PHASES[phaseIdx];
+    setPhase(phase.id, 'active', phase.label);
+    setPhaseStatus(phase.id, 'active', 'Scanning…');
+
+    let msgIdx = 0;
+    function nextMsg() {
+      if (msgIdx >= phase.msgs.length) {
+        setPhase(phase.id, 'done', phase.label);
+        setPhaseStatus(phase.id, 'done', 'Done');
+        phaseIdx++;
+        progress = Math.round(((phaseIdx) / SCAN_PHASES.length) * 100);
+        document.getElementById('progressBar').style.width = progress + '%';
+        setTimeout(runPhase, 300);
+        return;
+      }
+      const msg = phase.msgs[msgIdx];
+      addLog(msg.t, msg.m);
+      msgIdx++;
+      setTimeout(nextMsg, 250 + Math.random() * 200);
+    }
+    setTimeout(nextMsg, 200);
+  }
+  runPhase();
+}
+
+function setPhase(id, state, sub) {
+  const icon = document.getElementById('pi-'+id);
+  const subEl = document.getElementById('ps-'+id);
+  icon.className = 'scan-phase-icon ' + state;
+  icon.textContent = state === 'done' ? '✓' : state === 'active' ? '◉' : '⊙';
+  subEl.textContent = sub;
+}
+
+function setPhaseStatus(id, state, label) {
+  const el = document.getElementById('st-'+id);
+  el.className = 'scan-phase-status status-' + state;
+  el.textContent = label;
+}
+
+function addLog(type, msg) {
+  const log = document.getElementById('scanLog');
+  const t = new Date().toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const line = document.createElement('div');
+  line.className = 'scan-log-line ' + type;
+  line.innerHTML = `<span class="ts">${t}</span><span class="msg">${msg}</span>`;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ── COMPAT ─────────────────────────────────────────────────────────────────────
+function populateCompat() {
+  const d = DEMO_DATA[selectedDemo];
+  if (!d) return;
+
+  // Score ring
+  const score = d.score;
+  document.getElementById('scoreNum').textContent = score;
+  const fill = document.getElementById('scoreRingFill');
+  const offset = 283 - (283 * score / 100);
+  if (score >= 80) fill.className = 'score-ring-fill';
+  else if (score >= 60) fill.className = 'score-ring-fill warning';
+  else fill.className = 'score-ring-fill danger';
+  setTimeout(() => fill.style.strokeDashoffset = offset, 100);
+
+  // Badge
+  document.getElementById('badge-compat').textContent = score;
+  document.getElementById('badge-compat').className = 'sidebar-badge ' + (score >= 80 ? 'ok' : score >= 60 ? 'warn' : 'error');
+
+  // Breakdown bars
+  const bars = [
+    { id: 'tc',  val: 88, label: '88%' },
+    { id: 'obj', val: 91, label: '91%' },
+    { id: 'ts',  val: 95, label: '95%' },
+    { id: 'kw',  val: 52, label: '52%' },
+    { id: 'gv',  val: 100, label: '100%' },
+    { id: 'env', val: 100, label: '100%' },
+  ];
+  bars.forEach(b => {
+    setTimeout(() => {
+      document.getElementById('bar-'+b.id).style.width = b.val + '%';
+      document.getElementById('val-'+b.id).textContent = b.label;
+    }, 200);
+  });
+
+  // Asset summary cards
+  const ok = d.assets.filter(a => a.status === 'ok').length;
+  const warn = d.assets.filter(a => a.status === 'warn').length;
+  const err = d.assets.filter(a => a.status === 'err').length;
+  document.getElementById('ac-total').textContent = d.assets.length;
+  document.getElementById('ac-ok').textContent = ok + ' OK';
+  document.getElementById('ac-warn').textContent = warn + ' Warn';
+  document.getElementById('ac-err').textContent = err + ' Failed';
+  document.getElementById('ac-tc').textContent = d.testCases;
+  document.getElementById('ac-obj').textContent = d.objects;
+  document.getElementById('ac-kw').textContent = d.keywords;
+
+  renderAssetTable(d.assets);
+}
+
+function filterAssets(type, el) {
+  document.querySelectorAll('.asset-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const d = DEMO_DATA[selectedDemo];
+  const filtered = type === 'all' ? d.assets : d.assets.filter(a => a.type === type);
+  renderAssetTable(filtered);
+}
+
+function renderAssetTable(assets) {
+  const body = document.getElementById('assetTableBody');
+  body.innerHTML = assets.map(a => {
+    const pillClass = a.status === 'ok' ? 'pill-ok' : a.status === 'warn' ? 'pill-warn' : 'pill-err';
+    const pillLabel = a.status === 'ok' ? '✓ Convert' : a.status === 'warn' ? '⚠ Partial' : '✗ Manual';
+    const barColor = a.conf >= 80 ? '#00e5a0' : a.conf >= 55 ? '#ffd166' : '#ff4d6a';
+    return `<div class="items-table-row col-5">
+      <div class="item-name">
+        <span style="font-size:10px;opacity:0.5">${a.type === 'test_case' ? 'TC' : a.type === 'object' ? 'OBJ' : 'KW'}</span>
+        ${a.name}
+      </div>
+      <div class="item-type" style="color:var(--text3);font-size:11px;">${a.folder}</div>
+      <div><span class="status-pill ${pillClass}">${pillLabel}</span></div>
+      <div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="confidence-bar-wrap" style="flex:1">
+            <div class="confidence-bar" style="width:${a.conf}%;background:${barColor}"></div>
+          </div>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);min-width:30px;">${a.conf}%</span>
+        </div>
+      </div>
+      <button class="item-action-btn" onclick="showToast('🔍 Previewing ${a.name}')">Preview</button>
+    </div>`;
+  }).join('');
+}
+
+// ── MAPPING ────────────────────────────────────────────────────────────────────
+function populateMapping() {
+  // Keywords
+  const kwBody = document.getElementById('kwMappingBody');
+  kwBody.innerHTML = KW_MAPPINGS.map(m => {
+    const c = m.status === 'ok' ? 'var(--accent)' : m.status === 'warn' ? 'var(--yellow)' : 'var(--red)';
+    const pill = m.status === 'ok' ? 'pill-ok' : m.status === 'warn' ? 'pill-warn' : 'pill-err';
+    const label = m.status === 'ok' ? '✓ Auto' : m.status === 'warn' ? '⚠ Review' : '✗ Manual';
+    return `<div class="items-table-row" style="display:grid;grid-template-columns:1.5fr 1fr 1fr;padding:8px 14px;border-bottom:1px solid var(--border);">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);">${m.from}</span>
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:${c};">${m.to}</span>
+      <span class="status-pill ${pill}" style="width:fit-content;">${label}</span>
+    </div>`;
+  }).join('');
+
+  // Locators
+  const locBody = document.getElementById('locMappingBody');
+  locBody.innerHTML = LOC_MAPPINGS.map(l => {
+    const barColor = l.conf >= 80 ? '#00e5a0' : '#ffd166';
+    return `<div class="items-table-row" style="display:grid;grid-template-columns:1.5fr 1fr 1fr;padding:8px 14px;border-bottom:1px solid var(--border);align-items:center;">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);">${l.name}</span>
+      <span style="font-size:11px;color:var(--text3);">${l.strategy}</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="confidence-bar-wrap" style="flex:1"><div class="confidence-bar" style="width:${l.conf}%;background:${barColor}"></div></div>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);min-width:28px;">${l.conf}%</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // AI suggestions
+  fetchAIMappingSuggestions();
+}
+
+async function fetchAIMappingSuggestions() {
+  const el = document.getElementById('aiMappingSuggestions');
+  const d = DEMO_DATA[selectedDemo];
+  document.getElementById('aiGlobalSpinner').style.display = '';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        messages: [{
+          role: 'user',
+          content: `I'm migrating a Katalon project called "${d.name}" with ${d.testCases} test cases, ${d.objects} objects, and ${d.keywords} custom keywords to Playwright. The migration score is ${d.score}/100. Give me 4 brief, specific, actionable migration tips as a plain HTML list using <li> tags only. Focus on: locator strategy improvements, Playwright-specific idioms that improve on Katalon patterns, and handling the most common conversion issues. Be concise and technical.`
+        }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || '';
+    el.innerHTML = `<ul style="list-style:none;display:flex;flex-direction:column;gap:8px;">${text.replace(/<li>/g,'<li style="display:flex;gap:8px;align-items:flex-start;"><span style=\'color:var(--accent);flex-shrink:0;\'>→</span><span>')  .replace(/<\/li>/g,'</span></li>')}</ul>`;
+  } catch(e) {
+    el.innerHTML = '<span style="color:var(--text3);">AI suggestions unavailable — check connection</span>';
+  }
+  document.getElementById('aiGlobalSpinner').style.display = 'none';
+}
+
+// ── CONVERSION ─────────────────────────────────────────────────────────────────
+function runConversion() {
+  showToast('⚙ Running conversion… this may take a moment');
+  document.getElementById('aiGlobalSpinner').style.display = '';
+  setTimeout(() => {
+    document.getElementById('aiGlobalSpinner').style.display = 'none';
+    document.getElementById('badge-report').style.display = '';
+    goToStep(4);
+  }, 2400);
+}
+
+// ── REPORT ─────────────────────────────────────────────────────────────────────
+function populateReport() {
+  const d = DEMO_DATA[selectedDemo];
+  const total = d.assets.length;
+  const ok = d.assets.filter(a => a.status === 'ok').length;
+  const warn = d.assets.filter(a => a.status === 'warn').length;
+  const err = d.assets.filter(a => a.status === 'err').length;
+
+  document.getElementById('rk-converted').textContent = ok;
+  document.getElementById('rk-converted-sub').textContent = `of ${total} total assets`;
+  document.getElementById('rk-warnings').textContent = warn;
+  document.getElementById('rk-failed').textContent = err;
+  document.getElementById('warn-count-badge').textContent = WARNINGS.length;
+
+  // Warnings
+  const wList = document.getElementById('warningsList');
+  wList.innerHTML = WARNINGS.map(w => {
+    const sev = w.type === 'err' ? { pill: 'chip-err', label: 'HIGH' } : w.severity === 'MED' ? { pill: 'chip-warn', label: 'MED' } : { pill: 'chip-blue', label: 'LOW' };
+    return `<div class="warn-item">
+      <span class="warn-icon">${w.type === 'err' ? '✗' : '⚠'}</span>
+      <div class="warn-body">
+        <div class="warn-title">${w.title}</div>
+        <div class="warn-desc">${w.desc}</div>
+        <span class="warn-action" onclick="showToast('Opening remediation guide…')">View remediation guide →</span>
+      </div>
+      <span class="warn-severity chip ${sev.pill}">${sev.label}</span>
+    </div>`;
+  }).join('');
+
+  // Remediation
+  document.getElementById('remediationList').innerHTML = REMEDIATION.map(r =>
+    `<div class="remediation-item">${r}</div>`
+  ).join('');
+
+  // Tree
+  document.getElementById('projectTree').innerHTML = `
+📁 ${d.name}/
+├── 📁 Scripts/
+│   ├── 📁 Checkout/ <span style="color:var(--accent);">(converted)</span>
+│   ├── 📁 Auth/ <span style="color:var(--accent);">(converted)</span>
+│   ├── 📁 Search/ <span style="color:var(--accent);">(converted)</span>
+│   └── 📁 Admin/ <span style="color:var(--yellow);">⚠ partial</span>
+├── 📁 Object Repository/ <span style="color:var(--accent);">(${d.objects} objects)</span>
+├── 📁 Keywords/ <span style="color:var(--yellow);">⚠ ${d.keywords} files — review needed</span>
+├── 📁 Data Files/ <span style="color:var(--accent);">(8 datasets)</span>
+├── 📁 Profiles/ <span style="color:var(--accent);">(3 environments)</span>
+└── 📄 migration-report.json <span style="color:var(--blue);">NEW</span>`;
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────────────────
+let toastT;
+function showToast(msg) {
+  clearTimeout(toastT);
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.opacity = '1';
+  toastT = setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t?.remove(), 300); }, 2800);
+}
+</script>
+</body>
+</html>

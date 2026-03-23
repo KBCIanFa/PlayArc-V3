@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlaywrightArc — API Testing</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #08090c;
+  --bg2:    #0e1016;
+  --bg3:    #141820;
+  --bg4:    #1a2030;
+  --bg5:    #202840;
+  --border: #1e2538;
+  --border2:#28334a;
+  --text:   #dde4f0;
+  --text2:  #7a8aaa;
+  --text3:  #3d4f6a;
+  --green:  #00e5a0;
+  --green2: #00b87d;
+  --gdim:   rgba(0,229,160,0.08);
+  --gglow:  rgba(0,229,160,0.15);
+  --blue:   #4da6ff;
+  --bdim:   rgba(77,166,255,0.1);
+  --orange: #ff8c42;
+  --odim:   rgba(255,140,66,0.1);
+  --red:    #ff3d5a;
+  --rdim:   rgba(255,61,90,0.1);
+  --yellow: #ffc947;
+  --ydim:   rgba(255,201,71,0.1);
+  --purple: #b06aff;
+  --pdim:   rgba(176,106,255,0.1);
+  --cyan:   #22d3ee;
+  --cdim:   rgba(34,211,238,0.1);
+  --r:5px; --r2:9px; --r3:13px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{height:48px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--green);letter-spacing:-.5px;display:flex;align-items:center;gap:7px;}
+.logo-icon{width:22px;height:22px;background:var(--green);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:900;}
+.sep{width:1px;height:18px;background:var(--border2);}
+.page-label{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text2);}
+.page-label strong{color:var(--text);}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+
+.btn{display:flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r);border:none;cursor:pointer;font-family:'Instrument Sans',sans-serif;font-size:12px;font-weight:500;transition:all .14s;white-space:nowrap;}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid transparent;}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-outline:hover{border-color:var(--border2);color:var(--text);}
+.btn-green{background:var(--green);color:#000;font-weight:700;}
+.btn-green:hover{background:var(--green2);}
+.btn-green:disabled{opacity:.4;cursor:not-allowed;}
+.btn-blue{background:var(--bdim);color:var(--blue);border:1px solid rgba(77,166,255,.25);}
+.btn-blue:hover{background:rgba(77,166,255,.18);}
+.btn-red{background:var(--rdim);color:var(--red);border:1px solid rgba(255,61,90,.25);}
+
+/* LAYOUT */
+.layout{flex:1;display:flex;overflow:hidden;}
+
+/* LEFT — COLLECTIONS */
+.col-left{width:250px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.col-hdr{height:40px;display:flex;align-items:center;padding:0 12px;gap:6px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.col-hdr-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;flex:1;}
+.col-hdr-add{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:var(--text3);font-size:16px;cursor:pointer;transition:all .12s;}
+.col-hdr-add:hover{background:var(--bg3);color:var(--text);}
+.col-scroll{flex:1;overflow-y:auto;padding:6px 0;}
+
+.coll-group{margin-bottom:2px;}
+.coll-hdr{display:flex;align-items:center;gap:7px;padding:7px 12px;cursor:pointer;color:var(--text2);font-size:12px;font-weight:500;transition:background .1s;border-left:2px solid transparent;}
+.coll-hdr:hover{background:var(--bg3);}
+.coll-caret{font-size:9px;color:var(--text3);transition:transform .15s;}
+.coll-hdr.open .coll-caret{transform:rotate(90deg);}
+.coll-name{flex:1;}
+.coll-count{font-size:10px;color:var(--text3);background:var(--bg4);padding:1px 6px;border-radius:10px;}
+
+.req-item{display:flex;align-items:center;gap:7px;padding:6px 12px 6px 22px;cursor:pointer;transition:background .1s;border-left:2px solid transparent;}
+.req-item:hover{background:var(--bg3);}
+.req-item.active{background:var(--gdim);border-left-color:var(--green);}
+.req-method-pill{font-size:9px;font-weight:800;padding:1px 5px;border-radius:3px;min-width:32px;text-align:center;font-family:'DM Mono',monospace;}
+.m-GET{background:var(--gdim);color:var(--green);}
+.m-POST{background:var(--bdim);color:var(--blue);}
+.m-PUT{background:var(--ydim);color:var(--yellow);}
+.m-PATCH{background:var(--pdim);color:var(--purple);}
+.m-DELETE{background:var(--rdim);color:var(--red);}
+.m-GQL{background:var(--cdim);color:var(--cyan);}
+.req-name{font-size:12px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.req-item.active .req-name{color:var(--text);}
+.req-status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.dot-ok{background:var(--green);}
+.dot-err{background:var(--red);}
+.dot-none{background:var(--bg5);}
+
+/* CENTER — REQUEST BUILDER */
+.center{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* URL BAR */
+.url-bar{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;}
+.method-select{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:6px 10px;font-size:12px;font-weight:700;font-family:'DM Mono',monospace;outline:none;cursor:pointer;min-width:90px;}
+.method-select option{background:var(--bg2);}
+.url-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:7px 12px;font-size:13px;font-family:'DM Mono',monospace;outline:none;transition:border-color .15s;}
+.url-input:focus{border-color:var(--border2);}
+.url-input::placeholder{color:var(--text3);}
+.env-select{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text2);padding:6px 10px;font-size:12px;outline:none;cursor:pointer;}
+.env-select option{background:var(--bg2);}
+
+/* REQUEST TABS */
+.req-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;padding:0 16px;}
+.rtab{padding:9px 14px;font-size:12px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;display:flex;align-items:center;gap:5px;}
+.rtab:hover{color:var(--text2);}
+.rtab.active{color:var(--green);border-bottom-color:var(--green);}
+.rtab-badge{background:var(--bg4);color:var(--text3);font-size:10px;font-weight:700;padding:1px 5px;border-radius:10px;}
+.rtab.active .rtab-badge{background:var(--gdim);color:var(--green);}
+
+/* REQUEST BODY AREA */
+.req-body-area{flex:1;display:flex;overflow:hidden;}
+.req-panel{flex:1;overflow-y:auto;padding:14px 16px;}
+
+/* PARAM TABLE */
+.param-table{width:100%;border-collapse:collapse;margin-bottom:8px;}
+.param-table th{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:5px 8px;text-align:left;border-bottom:1px solid var(--border);}
+.param-row td{padding:4px 4px;}
+.param-check{accent-color:var(--green);width:14px;height:14px;cursor:pointer;}
+.param-input{width:100%;background:var(--bg3);border:1px solid transparent;border-radius:4px;color:var(--text);padding:5px 8px;font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .12s;}
+.param-input:focus{border-color:var(--border2);}
+.param-input::placeholder{color:var(--text3);}
+.param-del{background:transparent;border:none;color:var(--text3);cursor:pointer;padding:4px 6px;border-radius:3px;font-size:14px;transition:all .1s;}
+.param-del:hover{background:var(--rdim);color:var(--red);}
+.add-param-btn{display:flex;align-items:center;gap:5px;color:var(--text3);font-size:12px;cursor:pointer;padding:6px 4px;width:fit-content;transition:color .12s;}
+.add-param-btn:hover{color:var(--text2);}
+
+/* CODE EDITOR */
+.code-editor{width:100%;min-height:200px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;line-height:1.7;padding:12px;outline:none;resize:vertical;transition:border-color .15s;}
+.code-editor:focus{border-color:var(--border2);}
+
+/* AUTH SECTION */
+.auth-type-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.auth-type-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:11px;font-weight:600;cursor:pointer;transition:all .12s;}
+.auth-type-btn.active{background:var(--gdim);border-color:rgba(0,229,160,.3);color:var(--green);}
+.auth-type-btn:hover:not(.active){border-color:var(--border2);color:var(--text2);}
+
+.field-row{margin-bottom:10px;}
+.field-label{font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;}
+.field-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:7px 10px;font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .15s;}
+.field-input:focus{border-color:var(--green);}
+.field-input::placeholder{color:var(--text3);}
+.field-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* ASSERTIONS */
+.assertion-row{display:flex;align-items:center;gap:8px;padding:6px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);margin-bottom:6px;}
+.assert-type{background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--text2);padding:4px 8px;font-size:11px;outline:none;cursor:pointer;font-family:'Instrument Sans',sans-serif;}
+.assert-type option{background:var(--bg2);}
+.assert-input{flex:1;background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;padding:2px 6px;}
+.assert-input::placeholder{color:var(--text3);}
+.assert-op{background:var(--bg4);border:1px solid var(--border);border-radius:4px;color:var(--text3);padding:4px 8px;font-size:11px;outline:none;cursor:pointer;font-family:'DM Mono',monospace;}
+.assert-val{width:120px;background:transparent;border:none;border-left:1px solid var(--border);color:var(--green);font-family:'DM Mono',monospace;font-size:12px;outline:none;padding:2px 8px;}
+.assert-val::placeholder{color:var(--text3);}
+.assert-status{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
+.a-pass{background:var(--gdim);color:var(--green);}
+.a-fail{background:var(--rdim);color:var(--red);}
+.a-idle{background:var(--bg4);color:var(--text3);}
+
+/* CHAIN SECTION */
+.chain-step{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;margin-bottom:8px;}
+.chain-step-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.chain-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);}
+.chain-extract{font-family:'DM Mono',monospace;font-size:11px;color:var(--purple);background:var(--pdim);padding:2px 8px;border-radius:4px;}
+.chain-arrow{color:var(--text3);font-size:16px;text-align:center;margin:4px 0;}
+
+/* RESPONSE PANEL */
+.resp-panel{width:420px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--bg2);}
+.resp-hdr{height:40px;display:flex;align-items:center;padding:0 14px;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.resp-hdr-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;}
+.resp-status{padding:2px 8px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;}
+.rs-200{background:var(--gdim);color:var(--green);}
+.rs-201{background:var(--gdim);color:var(--green);}
+.rs-400{background:var(--ydim);color:var(--yellow);}
+.rs-404{background:var(--ydim);color:var(--yellow);}
+.rs-500{background:var(--rdim);color:var(--red);}
+.rs-none{background:var(--bg4);color:var(--text3);}
+.resp-dur{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);}
+.resp-size{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);}
+
+.resp-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 14px;flex-shrink:0;}
+.resp-tab{padding:7px 10px;font-size:11px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;font-family:'Syne',sans-serif;letter-spacing:.3px;text-transform:uppercase;}
+.resp-tab.active{color:var(--green);border-bottom-color:var(--green);}
+.resp-tab:hover:not(.active){color:var(--text2);}
+
+.resp-body{flex:1;overflow-y:auto;padding:12px 14px;}
+.resp-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--text3);}
+.resp-empty-icon{font-size:32px;opacity:.4;}
+.resp-empty-text{font-size:12px;}
+
+/* JSON VIEWER */
+.json-viewer{font-family:'DM Mono',monospace;font-size:12px;line-height:1.8;white-space:pre-wrap;word-break:break-all;}
+.j-key{color:var(--blue);}
+.j-str{color:var(--green);}
+.j-num{color:var(--orange);}
+.j-bool{color:var(--purple);}
+.j-null{color:var(--text3);}
+.j-brace{color:var(--text2);}
+
+/* HEADER ROWS */
+.hdr-row{display:flex;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;}
+.hdr-key{color:var(--blue);flex:1;}
+.hdr-val{color:var(--text2);flex:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ASSERT RESULTS */
+.assert-result-row{display:flex;align-items:center;gap:8px;padding:7px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);margin-bottom:5px;}
+.ar-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.ar-body{flex:1;}
+.ar-rule{font-size:12px;color:var(--text);font-weight:500;}
+.ar-detail{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-top:1px;}
+
+/* EXTRACT BADGE */
+.extract-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;background:var(--pdim);border:1px solid rgba(176,106,255,.2);font-size:11px;color:var(--purple);font-family:'DM Mono',monospace;margin-bottom:6px;}
+
+/* AI BAR */
+.ai-bar{padding:10px 16px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.ai-inner{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:7px 12px;transition:border-color .15s;}
+.ai-inner:focus-within{border-color:var(--green);box-shadow:0 0 0 3px var(--gglow);}
+.ai-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;}
+.ai-input::placeholder{color:var(--text3);}
+.ai-send{background:var(--green);color:#000;border:none;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Instrument Sans',sans-serif;transition:all .14s;}
+.ai-send:hover{background:var(--green2);}
+.ai-send:disabled{opacity:.4;cursor:not-allowed;}
+.ai-spinner{width:12px;height:12px;border-radius:50%;border:2px solid rgba(0,229,160,.2);border-top-color:var(--green);animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* SCROLLBARS */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--border2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:14px;right:14px;z-index:1000;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:10px 16px;font-size:12px;color:var(--text);box-shadow:0 8px 30px rgba(0,0,0,.6);animation:ti .2s ease-out;}
+@keyframes ti{from{opacity:0;transform:translateY(6px);}to{opacity:1;}}
+
+/* SECTION HDR */
+.sec-hdr{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.7px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo"><div class="logo-icon">▶</div>PlaywrightArc</div>
+  <div class="sep"></div>
+  <div class="page-label">API Testing — <strong id="currentReqName">New Request</strong></div>
+  <div class="topbar-right">
+    <select class="env-select" id="globalEnv" onchange="onEnvChange()">
+      <option>🌍 Local Dev</option>
+      <option>🧪 Staging</option>
+      <option>🚀 Production</option>
+    </select>
+    <button class="btn btn-outline" onclick="showToast('📋 cURL copied to clipboard')">⌘ cURL</button>
+    <button class="btn btn-outline" onclick="showToast('💾 Saved to collection')">Save</button>
+    <button class="btn btn-green" id="sendBtn" onclick="sendRequest()">▶ Send</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- LEFT: COLLECTIONS -->
+  <div class="col-left">
+    <div class="col-hdr">
+      <span class="col-hdr-title">Collections</span>
+      <span class="col-hdr-add" onclick="showToast('+ New collection created')">+</span>
+    </div>
+    <div class="col-scroll" id="colScroll"></div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center">
+
+    <!-- URL BAR -->
+    <div class="url-bar">
+      <select class="method-select" id="methodSelect" onchange="onMethodChange()">
+        <option>GET</option>
+        <option>POST</option>
+        <option>PUT</option>
+        <option>PATCH</option>
+        <option>DELETE</option>
+        <option>GraphQL</option>
+      </select>
+      <input class="url-input" id="urlInput" value="{{BASE_URL}}/api/products" placeholder="https://api.example.com/endpoint" oninput="onUrlChange()">
+      <select class="env-select" id="bodyType" onchange="onBodyTypeChange()" style="display:none;">
+        <option>JSON</option>
+        <option>Form Data</option>
+        <option>Raw</option>
+        <option>GraphQL</option>
+      </select>
+    </div>
+
+    <!-- REQUEST TABS -->
+    <div class="req-tabs">
+      <div class="rtab active" onclick="switchTab(this,'params')">Params <span class="rtab-badge" id="badge-params">3</span></div>
+      <div class="rtab" onclick="switchTab(this,'headers')">Headers <span class="rtab-badge" id="badge-headers">4</span></div>
+      <div class="rtab" onclick="switchTab(this,'auth')">Auth <span class="rtab-badge" id="badge-auth">Bearer</span></div>
+      <div class="rtab" onclick="switchTab(this,'body')">Body <span class="rtab-badge" id="badge-body">–</span></div>
+      <div class="rtab" onclick="switchTab(this,'assertions')">Assertions <span class="rtab-badge" id="badge-assertions">3</span></div>
+      <div class="rtab" onclick="switchTab(this,'chain')">Chain <span class="rtab-badge" id="badge-chain">2</span></div>
+      <div class="rtab" onclick="switchTab(this,'scripts')">Scripts</div>
+    </div>
+
+    <!-- REQUEST PANELS -->
+    <div class="req-body-area">
+      <div class="req-panel" id="mainPanel">
+
+        <!-- PARAMS -->
+        <div id="panel-params">
+          <div class="sec-hdr"><span>Query Parameters</span><span class="add-param-btn" onclick="addParam('params-table')">+ Add</span></div>
+          <table class="param-table">
+            <thead><tr><th style="width:30px"></th><th>Key</th><th>Value</th><th style="width:30px"></th></tr></thead>
+            <tbody id="params-table">
+              <tr class="param-row"><td><input type="checkbox" class="param-check" checked></td><td><input class="param-input" value="page" placeholder="key"></td><td><input class="param-input" value="1" placeholder="value"></td><td><button class="param-del" onclick="delRow(this)">×</button></td></tr>
+              <tr class="param-row"><td><input type="checkbox" class="param-check" checked></td><td><input class="param-input" value="limit" placeholder="key"></td><td><input class="param-input" value="20" placeholder="value"></td><td><button class="param-del" onclick="delRow(this)">×</button></td></tr>
+              <tr class="param-row"><td><input type="checkbox" class="param-check" checked></td><td><input class="param-input" value="category" placeholder="key"></td><td><input class="param-input" value="{{CATEGORY}}" placeholder="value"></td><td><button class="param-del" onclick="delRow(this)">×</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- HEADERS -->
+        <div id="panel-headers" style="display:none;">
+          <div class="sec-hdr"><span>Request Headers</span><span class="add-param-btn" onclick="addParam('headers-table')">+ Add</span></div>
+          <table class="param-table">
+            <thead><tr><th style="width:30px"></th><th>Key</th><th>Value</th><th style="width:30px"></th></tr></thead>
+            <tbody id="headers-table">
+              <tr class="param-row"><td><input type="checkbox" class="param-check" checked></td><td><input class="param-input" value="Content-Type" placeholder="key"></td><td><input class="param-input" value="application/json" placeholder="value"></td><td><button class="param-del" onclick="delRow(this)">×</button></td></tr>
+              <tr class="param-row"><td><input type="checkbox" class="param-check" checked></td><td><input class="param-input" value="Accept" placeholder="key"></td><td><input class="param-input" value="application/json" placeholder="value"></td><td><button class="param-del" onclick="delRow(this)">×</button></td></tr>
+              <tr class="param-row"><td><input type="checkbox" class="param-check" checked></td><td><input class="param-input" value="X-API-Version" placeholder="key"></td><td><input class="param-input" value="2024-01" placeholder="value"></td><td><button class="param-del" onclick="delRow(this)">×</button></td></tr>
+              <tr class="param-row"><td><input type="checkbox" class="param-check"></td><td><input class="param-input" value="X-Debug" placeholder="key"></td><td><input class="param-input" value="true" placeholder="value"></td><td><button class="param-del" onclick="delRow(this)">×</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- AUTH -->
+        <div id="panel-auth" style="display:none;">
+          <div class="sec-hdr">Authentication</div>
+          <div class="auth-type-row">
+            <button class="auth-type-btn" onclick="setAuth(this,'none')">None</button>
+            <button class="auth-type-btn active" onclick="setAuth(this,'bearer')">Bearer Token</button>
+            <button class="auth-type-btn" onclick="setAuth(this,'basic')">Basic</button>
+            <button class="auth-type-btn" onclick="setAuth(this,'apikey')">API Key</button>
+            <button class="auth-type-btn" onclick="setAuth(this,'oauth2')">OAuth 2.0</button>
+          </div>
+          <div id="auth-bearer">
+            <div class="field-row">
+              <div class="field-label">Token</div>
+              <input class="field-input" value="{{AUTH_TOKEN}}" placeholder="Bearer token or {{variable}}">
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px;">Token will be sent as: <span style="color:var(--text2);font-family:'DM Mono',monospace;">Authorization: Bearer &lt;token&gt;</span></div>
+          </div>
+          <div id="auth-basic" style="display:none;">
+            <div class="field-row-2">
+              <div class="field-row"><div class="field-label">Username</div><input class="field-input" placeholder="{{USERNAME}}"></div>
+              <div class="field-row"><div class="field-label">Password</div><input class="field-input" type="password" placeholder="{{PASSWORD}}"></div>
+            </div>
+          </div>
+          <div id="auth-apikey" style="display:none;">
+            <div class="field-row-2">
+              <div class="field-row"><div class="field-label">Key</div><input class="field-input" value="X-API-Key" placeholder="Header name"></div>
+              <div class="field-row"><div class="field-label">Value</div><input class="field-input" value="{{API_KEY}}" placeholder="{{variable}}"></div>
+            </div>
+          </div>
+          <div id="auth-oauth2" style="display:none;">
+            <div class="field-row"><div class="field-label">Token URL</div><input class="field-input" placeholder="https://auth.example.com/oauth/token"></div>
+            <div class="field-row-2">
+              <div class="field-row"><div class="field-label">Client ID</div><input class="field-input" placeholder="{{CLIENT_ID}}"></div>
+              <div class="field-row"><div class="field-label">Client Secret</div><input class="field-input" type="password" placeholder="{{CLIENT_SECRET}}"></div>
+            </div>
+            <div class="field-row"><div class="field-label">Scope</div><input class="field-input" placeholder="read write"></div>
+            <button class="btn btn-blue" style="margin-top:8px;" onclick="showToast('🔑 Fetching OAuth token…')">Fetch Token</button>
+          </div>
+        </div>
+
+        <!-- BODY -->
+        <div id="panel-body" style="display:none;">
+          <div class="sec-hdr"><span>Request Body</span>
+            <div style="display:flex;gap:6px;">
+              <button class="auth-type-btn active" onclick="setBodyFmt(this,'json')">JSON</button>
+              <button class="auth-type-btn" onclick="setBodyFmt(this,'form')">Form Data</button>
+              <button class="auth-type-btn" onclick="setBodyFmt(this,'raw')">Raw</button>
+              <button class="auth-type-btn" onclick="setBodyFmt(this,'gql')">GraphQL</button>
+            </div>
+          </div>
+          <div id="body-json">
+            <textarea class="code-editor" id="jsonBody" rows="14">{
+  "name": "Blue Running Shoes",
+  "sku": "{{PRODUCT_SKU}}",
+  "price": 89.99,
+  "category": "footwear",
+  "inventory": {
+    "quantity": 150,
+    "warehouse": "WH-001"
+  },
+  "tags": ["running", "sport", "sale"]
+}</textarea>
+          </div>
+          <div id="body-form" style="display:none;">
+            <table class="param-table">
+              <thead><tr><th style="width:30px"></th><th>Key</th><th>Value</th><th style="width:30px"></th></tr></thead>
+              <tbody id="form-table">
+                <tr class="param-row"><td><input type="checkbox" class="param-check" checked></td><td><input class="param-input" value="name" placeholder="key"></td><td><input class="param-input" value="Blue Running Shoes" placeholder="value"></td><td><button class="param-del" onclick="delRow(this)">×</button></td></tr>
+              </tbody>
+            </table>
+            <div class="add-param-btn" onclick="addParam('form-table')">+ Add field</div>
+          </div>
+          <div id="body-gql" style="display:none;">
+            <div class="field-label" style="margin-bottom:6px;">Query</div>
+            <textarea class="code-editor" rows="8">query GetProducts($category: String, $limit: Int) {
+  products(category: $category, limit: $limit) {
+    id
+    name
+    price
+    inventory { quantity }
+  }
+}</textarea>
+            <div class="field-label" style="margin:10px 0 6px;">Variables</div>
+            <textarea class="code-editor" rows="4">{ "category": "{{CATEGORY}}", "limit": 20 }</textarea>
+          </div>
+        </div>
+
+        <!-- ASSERTIONS -->
+        <div id="panel-assertions" style="display:none;">
+          <div class="sec-hdr"><span>Response Assertions</span><span class="add-param-btn" onclick="addAssertion()">+ Add</span></div>
+          <div id="assertion-list">
+            <div class="assertion-row">
+              <select class="assert-type"><option>Status Code</option><option>Body JSON</option><option>Header</option><option>Response Time</option><option>Schema</option></select>
+              <select class="assert-op"><option>equals</option><option>contains</option><option>matches</option><option>exists</option></select>
+              <input class="assert-val" value="200" placeholder="expected">
+              <span class="assert-status a-idle">–</span>
+              <button class="param-del" onclick="delRow(this)">×</button>
+            </div>
+            <div class="assertion-row">
+              <select class="assert-type"><option selected value="body">Body JSON</option><option>Status Code</option><option>Header</option><option>Response Time</option></select>
+              <input class="assert-input" value="$.data.length" placeholder="JSONPath">
+              <select class="assert-op"><option>equals</option><option selected>greater than</option><option>contains</option></select>
+              <input class="assert-val" value="0" placeholder="expected">
+              <span class="assert-status a-idle">–</span>
+              <button class="param-del" onclick="delRow(this)">×</button>
+            </div>
+            <div class="assertion-row">
+              <select class="assert-type"><option>Status Code</option><option>Body JSON</option><option selected>Response Time</option><option>Header</option></select>
+              <select class="assert-op"><option selected>less than</option><option>equals</option><option>greater than</option></select>
+              <input class="assert-val" value="2000" placeholder="ms">
+              <span class="assert-status a-idle">–</span>
+              <button class="param-del" onclick="delRow(this)">×</button>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <div class="sec-hdr"><span>Variable Extraction</span><span class="add-param-btn" onclick="addExtract()">+ Add</span></div>
+            <div id="extract-list">
+              <div class="assertion-row">
+                <input class="assert-input" style="flex:none;width:130px;" value="productId" placeholder="variable name">
+                <span style="color:var(--text3);font-size:12px;">←</span>
+                <select class="assert-type"><option>JSON Path</option><option>Header</option><option>Regex</option></select>
+                <input class="assert-input" value="$.data[0].id" placeholder="expression">
+                <span class="extract-badge">$var</span>
+                <button class="param-del" onclick="delRow(this)">×</button>
+              </div>
+              <div class="assertion-row">
+                <input class="assert-input" style="flex:none;width:130px;" value="authToken" placeholder="variable name">
+                <span style="color:var(--text3);font-size:12px;">←</span>
+                <select class="assert-type"><option>JSON Path</option><option>Header</option><option>Regex</option></select>
+                <input class="assert-input" value="$.token" placeholder="expression">
+                <span class="extract-badge">$var</span>
+                <button class="param-del" onclick="delRow(this)">×</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHAIN -->
+        <div id="panel-chain" style="display:none;">
+          <div class="sec-hdr">Chained Requests</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.6;">Chain requests in sequence. Variables extracted from each response are available to subsequent requests.</div>
+
+          <div class="chain-step">
+            <div class="chain-step-hdr">
+              <span class="chain-num">Step 1</span>
+              <span class="req-method-pill m-POST">POST</span>
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);">{{BASE_URL}}/api/auth/login</span>
+              <span class="chain-extract">→ authToken</span>
+              <span style="font-size:11px;color:var(--green);margin-left:auto;">✓ Passed</span>
+            </div>
+            <div style="font-size:11px;color:var(--text3);">Extracts <span style="color:var(--purple);font-family:'DM Mono',monospace;">$.token</span> → <span style="color:var(--purple);font-family:'DM Mono',monospace;">{{authToken}}</span></div>
+          </div>
+          <div class="chain-arrow">↓</div>
+          <div class="chain-step">
+            <div class="chain-step-hdr">
+              <span class="chain-num">Step 2</span>
+              <span class="req-method-pill m-GET">GET</span>
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);">{{BASE_URL}}/api/products</span>
+              <span class="chain-extract">→ productId</span>
+              <span style="font-size:11px;color:var(--green);margin-left:auto;">✓ Passed</span>
+            </div>
+            <div style="font-size:11px;color:var(--text3);">Uses <span style="color:var(--purple);font-family:'DM Mono',monospace;">Authorization: Bearer {{authToken}}</span> · Extracts <span style="color:var(--purple);font-family:'DM Mono',monospace;">$.data[0].id</span></div>
+          </div>
+          <div class="chain-arrow">↓</div>
+          <div class="chain-step" style="border-style:dashed;cursor:pointer;" onclick="showToast('+ Step 3 added to chain')">
+            <div style="text-align:center;color:var(--text3);font-size:12px;">+ Add next request using <span style="color:var(--purple);font-family:'DM Mono',monospace;">{{productId}}</span></div>
+          </div>
+
+          <div style="margin-top:16px;">
+            <button class="btn btn-green" onclick="runChain()">▶ Run Chain</button>
+          </div>
+        </div>
+
+        <!-- SCRIPTS -->
+        <div id="panel-scripts" style="display:none;">
+          <div class="sec-hdr">Pre-Request Script</div>
+          <textarea class="code-editor" rows="6">// Runs before request is sent
+const ts = Date.now();
+pm.variables.set('timestamp', ts);
+pm.variables.set('CATEGORY', 'footwear');</textarea>
+          <div class="sec-hdr" style="margin-top:14px;">Post-Response Script</div>
+          <textarea class="code-editor" rows="6">// Runs after response received
+const json = pm.response.json();
+pm.test('Status 200', () => pm.response.to.have.status(200));
+pm.variables.set('productId', json.data[0].id);</textarea>
+        </div>
+
+      </div><!-- /req-panel -->
+
+      <!-- RESPONSE PANEL -->
+      <div class="resp-panel">
+        <div class="resp-hdr">
+          <span class="resp-hdr-title">Response</span>
+          <span class="resp-status rs-none" id="respStatus">–</span>
+          <span class="resp-dur" id="respDur"></span>
+          <span class="resp-size" id="respSize"></span>
+          <button class="btn btn-ghost" style="margin-left:auto;padding:3px 8px;font-size:11px;" onclick="copyResponse()">Copy</button>
+        </div>
+        <div class="resp-tabs">
+          <div class="resp-tab active" onclick="switchRespTab(this,'body')">Body</div>
+          <div class="resp-tab" onclick="switchRespTab(this,'headers')">Headers</div>
+          <div class="resp-tab" onclick="switchRespTab(this,'assertions')">Assertions</div>
+          <div class="resp-tab" onclick="switchRespTab(this,'cookies')">Cookies</div>
+        </div>
+        <div class="resp-body" id="respBody">
+          <div class="resp-empty">
+            <div class="resp-empty-icon">⟳</div>
+            <div class="resp-empty-text">Hit Send to get a response</div>
+          </div>
+        </div>
+
+        <!-- AI BAR -->
+        <div class="ai-bar">
+          <div class="ai-inner">
+            <span style="font-size:15px;">✦</span>
+            <input class="ai-input" id="aiInput" placeholder="Ask AI: generate assertions, explain response, suggest tests…" onkeydown="if(event.key==='Enter')aiAsk()">
+            <button class="ai-send" id="aiSendBtn" onclick="aiAsk()">Ask</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /req-body-area -->
+  </div><!-- /center -->
+</div><!-- /layout -->
+
+<script>
+// ── COLLECTIONS DATA ──────────────────────────────────────────────────────────
+const COLLECTIONS = [
+  { name:'E-Commerce API', reqs:[
+    { id:'r1', method:'GET',    name:'List Products',      status:'ok'  },
+    { id:'r2', method:'POST',   name:'Create Product',     status:'ok'  },
+    { id:'r3', method:'GET',    name:'Get Product by ID',  status:'none'},
+    { id:'r4', method:'PUT',    name:'Update Product',     status:'none'},
+    { id:'r5', method:'DELETE', name:'Delete Product',     status:'err' },
+  ]},
+  { name:'Auth Flow', reqs:[
+    { id:'r6', method:'POST',   name:'Login',              status:'ok'  },
+    { id:'r7', method:'POST',   name:'Refresh Token',      status:'ok'  },
+    { id:'r8', method:'DELETE', name:'Logout',             status:'none'},
+  ]},
+  { name:'Orders', reqs:[
+    { id:'r9',  method:'POST',  name:'Create Order',       status:'none'},
+    { id:'r10', method:'GET',   name:'List Orders',        status:'ok'  },
+    { id:'r11', method:'PATCH', name:'Update Order Status',status:'none'},
+  ]},
+  { name:'GraphQL', reqs:[
+    { id:'r12', method:'GQL',   name:'GetProducts Query',  status:'ok'  },
+    { id:'r13', method:'GQL',   name:'CreateOrder Mutation',status:'none'},
+  ]},
+];
+
+const ENVS = {
+  'Local Dev':  { BASE_URL:'http://localhost:3000', AUTH_TOKEN:'dev-token-abc123', CATEGORY:'footwear', API_KEY:'dev-key-xyz' },
+  'Staging':    { BASE_URL:'https://staging.api.myshop.com', AUTH_TOKEN:'stg-token-def456', CATEGORY:'footwear', API_KEY:'stg-key-abc' },
+  'Production': { BASE_URL:'https://api.myshop.com', AUTH_TOKEN:'••••••••', CATEGORY:'footwear', API_KEY:'••••••' },
+};
+
+const MOCK_RESPONSES = {
+  GET: {
+    status: 200,
+    dur: () => 80 + Math.random()*200,
+    body: { success: true, data: [
+      { id:'prod_001', name:'Blue Running Shoes', price:89.99, category:'footwear', inventory:{ quantity:150, warehouse:'WH-001' }, tags:['running','sport','sale'] },
+      { id:'prod_002', name:'Trail Hikers Pro', price:129.99, category:'footwear', inventory:{ quantity:42, warehouse:'WH-002' }, tags:['hiking','outdoor'] },
+      { id:'prod_003', name:'Court Classics', price:74.99, category:'footwear', inventory:{ quantity:88, warehouse:'WH-001' }, tags:['casual','court'] },
+    ], pagination:{ page:1, limit:20, total:247, pages:13 } },
+    headers: { 'Content-Type':'application/json', 'X-Request-Id':'req_8f3k2j', 'X-RateLimit-Remaining':'98', 'Cache-Control':'max-age=60' }
+  },
+  POST: {
+    status: 201,
+    dur: () => 120 + Math.random()*180,
+    body: { success:true, data:{ id:'prod_NEW', name:'Blue Running Shoes', sku:'BRS-001', price:89.99, created_at:'2025-03-08T12:00:00Z' }, message:'Product created successfully' },
+    headers: { 'Content-Type':'application/json', 'Location':'/api/products/prod_NEW', 'X-Request-Id':'req_9g4l3k' }
+  },
+  DELETE: {
+    status: 500,
+    dur: () => 30 + Math.random()*50,
+    body: { success:false, error:'Internal Server Error', message:'Foreign key constraint violation — product has active orders', code:'FK_VIOLATION' },
+    headers: { 'Content-Type':'application/json', 'X-Request-Id':'req_err_x7' }
+  },
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let activeReq = 'r1';
+let currentTab = 'params';
+let currentRespTab = 'body';
+let lastResponse = null;
+let currentAuth = 'bearer';
+
+// ── COLLECTIONS RENDER ────────────────────────────────────────────────────────
+function renderCollections() {
+  const wrap = document.getElementById('colScroll');
+  wrap.innerHTML = COLLECTIONS.map(c => `
+    <div class="coll-group">
+      <div class="coll-hdr open" onclick="toggleColl(this)">
+        <span class="coll-caret">▶</span>
+        <span class="coll-name">${c.name}</span>
+        <span class="coll-count">${c.reqs.length}</span>
+      </div>
+      <div class="coll-reqs">
+        ${c.reqs.map(r => `
+          <div class="req-item${r.id===activeReq?' active':''}" onclick="selectReq('${r.id}','${r.name}','${r.method}')">
+            <span class="req-method-pill m-${r.method}">${r.method}</span>
+            <span class="req-name">${r.name}</span>
+            <span class="req-status-dot dot-${r.status}"></span>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function toggleColl(hdr) {
+  hdr.classList.toggle('open');
+  hdr.nextElementSibling.style.display = hdr.classList.contains('open') ? '' : 'none';
+}
+
+function selectReq(id, name, method) {
+  activeReq = id;
+  document.getElementById('currentReqName').textContent = name;
+  document.getElementById('methodSelect').value = method === 'GQL' ? 'GraphQL' : method;
+  onMethodChange();
+  renderCollections();
+  resetResponse();
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+const PANELS = ['params','headers','auth','body','assertions','chain','scripts'];
+function switchTab(el, tab) {
+  document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentTab = tab;
+  PANELS.forEach(p => {
+    const panel = document.getElementById('panel-'+p);
+    if (panel) panel.style.display = p === tab ? '' : 'none';
+  });
+}
+
+const RESP_TABS = ['body','headers','assertions','cookies'];
+function switchRespTab(el, tab) {
+  document.querySelectorAll('.resp-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentRespTab = tab;
+  if (lastResponse) showResponse(lastResponse);
+}
+
+// ── METHOD / ENV ──────────────────────────────────────────────────────────────
+function onMethodChange() {
+  const m = document.getElementById('methodSelect').value;
+  const bodyTab = document.querySelector('.rtab:nth-child(4)');
+  const hasBody = ['POST','PUT','PATCH','GraphQL'].includes(m);
+  document.getElementById('badge-body').textContent = hasBody ? 'JSON' : '–';
+  if (m === 'GraphQL') {
+    document.getElementById('urlInput').value = '{{BASE_URL}}/graphql';
+  }
+}
+
+function onUrlChange() {}
+function onEnvChange() {
+  const env = document.getElementById('globalEnv').value.replace(/^[^ ]+ /,'');
+  showToast(`Environment: ${env}`);
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+function setAuth(btn, type) {
+  document.querySelectorAll('.auth-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentAuth = type;
+  ['bearer','basic','apikey','oauth2'].forEach(t => {
+    const el = document.getElementById('auth-'+t);
+    if (el) el.style.display = t === type ? '' : 'none';
+  });
+  document.getElementById('badge-auth').textContent = type === 'none' ? '–' : type;
+}
+
+// ── BODY FORMAT ───────────────────────────────────────────────────────────────
+function setBodyFmt(btn, fmt) {
+  document.querySelectorAll('#panel-body .auth-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['json','form','raw','gql'].forEach(f => {
+    const el = document.getElementById('body-'+f);
+    if (el) el.style.display = f === fmt ? '' : 'none';
+  });
+}
+
+// ── PARAMS ────────────────────────────────────────────────────────────────────
+function addParam(tableId) {
+  const tb = document.getElementById(tableId);
+  const tr = document.createElement('tr');
+  tr.className = 'param-row';
+  tr.innerHTML = `<td><input type="checkbox" class="param-check" checked></td><td><input class="param-input" placeholder="key"></td><td><input class="param-input" placeholder="value"></td><td><button class="param-del" onclick="delRow(this)">×</button></td>`;
+  tb.appendChild(tr);
+}
+
+function delRow(btn) { btn.closest('tr, .assertion-row').remove(); }
+
+function addAssertion() {
+  const list = document.getElementById('assertion-list');
+  const div = document.createElement('div');
+  div.className = 'assertion-row';
+  div.innerHTML = `<select class="assert-type"><option>Status Code</option><option>Body JSON</option><option>Header</option><option>Response Time</option></select><input class="assert-input" placeholder="JSONPath or header name"><select class="assert-op"><option>equals</option><option>contains</option><option>exists</option></select><input class="assert-val" placeholder="expected"><span class="assert-status a-idle">–</span><button class="param-del" onclick="delRow(this)">×</button>`;
+  list.appendChild(div);
+}
+
+function addExtract() {
+  const list = document.getElementById('extract-list');
+  const div = document.createElement('div');
+  div.className = 'assertion-row';
+  div.innerHTML = `<input class="assert-input" style="flex:none;width:130px;" placeholder="variable name"><span style="color:var(--text3);font-size:12px;">←</span><select class="assert-type"><option>JSON Path</option><option>Header</option><option>Regex</option></select><input class="assert-input" placeholder="$.path.to.value"><span class="extract-badge">$var</span><button class="param-del" onclick="delRow(this)">×</button>`;
+  list.appendChild(div);
+}
+
+// ── SEND REQUEST ──────────────────────────────────────────────────────────────
+async function sendRequest() {
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.textContent = '⟳ Sending…';
+  resetResponse();
+
+  const method = document.getElementById('methodSelect').value;
+  const mockKey = method === 'GraphQL' ? 'GET' : (method in MOCK_RESPONSES ? method : 'GET');
+  const mock = MOCK_RESPONSES[mockKey] || MOCK_RESPONSES['GET'];
+  const dur = mock.dur();
+
+  await new Promise(r => setTimeout(r, dur));
+
+  const resp = {
+    status: mock.status,
+    dur: Math.round(dur),
+    body: mock.body,
+    headers: mock.headers,
+    size: JSON.stringify(mock.body).length,
+  };
+  lastResponse = resp;
+  showResponse(resp);
+  evaluateAssertions(resp);
+
+  btn.disabled = false;
+  btn.textContent = '▶ Send';
+
+  // Update collection status
+  const req = COLLECTIONS.flatMap(c=>c.reqs).find(r=>r.id===activeReq);
+  if (req) req.status = resp.status < 400 ? 'ok' : 'err';
+  renderCollections();
+}
+
+function resetResponse() {
+  lastResponse = null;
+  document.getElementById('respStatus').textContent = '–';
+  document.getElementById('respStatus').className = 'resp-status rs-none';
+  document.getElementById('respDur').textContent = '';
+  document.getElementById('respSize').textContent = '';
+  document.getElementById('respBody').innerHTML = `<div class="resp-empty"><div class="resp-empty-icon">⟳</div><div class="resp-empty-text">Hit Send to get a response</div></div>`;
+}
+
+function showResponse(resp) {
+  const statusEl = document.getElementById('respStatus');
+  statusEl.textContent = resp.status;
+  statusEl.className = `resp-status rs-${resp.status}`;
+  document.getElementById('respDur').textContent = resp.dur + 'ms';
+  document.getElementById('respSize').textContent = '· ' + (resp.size/1024).toFixed(1) + 'KB';
+
+  const body = document.getElementById('respBody');
+
+  if (currentRespTab === 'body') {
+    body.innerHTML = `<div class="json-viewer">${syntaxHighlight(JSON.stringify(resp.body, null, 2))}</div>`;
+  } else if (currentRespTab === 'headers') {
+    body.innerHTML = Object.entries(resp.headers).map(([k,v]) =>
+      `<div class="hdr-row"><span class="hdr-key">${k}</span><span class="hdr-val">${v}</span></div>`
+    ).join('');
+  } else if (currentRespTab === 'assertions') {
+    renderAssertionResults(resp);
+  } else if (currentRespTab === 'cookies') {
+    body.innerHTML = `<div class="hdr-row"><span class="hdr-key">session_id</span><span class="hdr-val">abc123def456</span></div><div class="hdr-row"><span class="hdr-key">csrf_token</span><span class="hdr-val">xyzSecure789</span></div>`;
+  }
+}
+
+function syntaxHighlight(json) {
+  return json
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
+      let cls = 'j-num';
+      if (/^"/.test(m)) { cls = /:$/.test(m) ? 'j-key' : 'j-str'; }
+      else if (/true|false/.test(m)) cls = 'j-bool';
+      else if (/null/.test(m)) cls = 'j-null';
+      const clean = cls === 'j-key' ? m.replace(/:$/,'') : m;
+      return `<span class="${cls}">${clean}</span>${/:$/.test(m)?':':''}`;
+    });
+}
+
+function evaluateAssertions(resp) {
+  const rows = document.querySelectorAll('.assertion-row');
+  rows.forEach(row => {
+    const statusEl = row.querySelector('.assert-status');
+    if (!statusEl) return;
+    const type = row.querySelector('.assert-type')?.value;
+    const expected = row.querySelector('.assert-val')?.value;
+    let pass = false;
+    if (type === 'Status Code') pass = String(resp.status) === String(expected);
+    else if (type === 'Response Time') pass = resp.dur < parseInt(expected);
+    else if (type === 'Body JSON') pass = resp.status < 400;
+    else pass = Math.random() > 0.3;
+    statusEl.className = 'assert-status ' + (pass ? 'a-pass' : 'a-fail');
+    statusEl.textContent = pass ? '✓' : '✗';
+  });
+}
+
+function renderAssertionResults(resp) {
+  const body = document.getElementById('respBody');
+  const method = document.getElementById('methodSelect').value;
+  const isOk = resp.status < 400;
+
+  const assertions = [
+    { rule:`Status Code equals ${resp.status < 400 ? '200' : '500'}`, pass: isOk, detail:`Got: ${resp.status}` },
+    { rule:'Response time < 2000ms', pass: resp.dur < 2000, detail:`Got: ${resp.dur}ms` },
+    { rule:'$.data.length > 0', pass: isOk && resp.body?.data?.length > 0, detail:`Got: ${resp.body?.data?.length ?? 0} items` },
+    { rule:'Content-Type contains application/json', pass: true, detail:`Got: application/json` },
+  ];
+
+  body.innerHTML = assertions.map(a => `
+    <div class="assert-result-row">
+      <div class="ar-icon ${a.pass?'a-pass':'a-fail'}">${a.pass?'✓':'✗'}</div>
+      <div class="ar-body">
+        <div class="ar-rule">${a.rule}</div>
+        <div class="ar-detail">${a.detail}</div>
+      </div>
+    </div>`).join('');
+
+  if (resp.body?.data?.[0]?.id) {
+    body.innerHTML += `<div style="margin-top:12px;"><div class="sec-hdr">Extracted Variables</div>
+      <div class="assertion-row" style="background:var(--pdim);">
+        <span class="extract-badge">productId</span>
+        <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);">= "${resp.body.data[0].id}"</span>
+      </div></div>`;
+  }
+}
+
+// ── CHAIN ─────────────────────────────────────────────────────────────────────
+async function runChain() {
+  showToast('⛓ Running chain — 2 requests…');
+  await new Promise(r => setTimeout(r, 400));
+  showToast('✓ Step 1 complete — token extracted');
+  await new Promise(r => setTimeout(r, 600));
+  showToast('✓ Step 2 complete — productId extracted');
+  await new Promise(r => setTimeout(r, 400));
+  showToast('✓ Chain complete — all steps passed');
+}
+
+// ── AI ASK ────────────────────────────────────────────────────────────────────
+async function aiAsk() {
+  const input = document.getElementById('aiInput');
+  const prompt = input.value.trim();
+  if (!prompt) return;
+
+  const btn = document.getElementById('aiSendBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="ai-spinner"></div>';
+  input.value = '';
+
+  const context = lastResponse
+    ? `The user sent a ${document.getElementById('methodSelect').value} request to ${document.getElementById('urlInput').value}. Response status: ${lastResponse.status}, duration: ${lastResponse.dur}ms, body: ${JSON.stringify(lastResponse.body).slice(0,500)}.`
+    : `The user is building an API test for ${document.getElementById('urlInput').value} using ${document.getElementById('methodSelect').value}.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:400,
+        messages:[{role:'user', content:`${context}\n\nUser question: ${prompt}\n\nGive a concise, practical answer. If suggesting assertions or test code, use Playwright/JavaScript syntax. Keep it under 6 lines.`}]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || 'No response';
+    showAIResult(text);
+  } catch(e) {
+    showAIResult('→ Check the response status code equals 200\n→ Assert $.data is an array with length > 0\n→ Verify response time is under 2000ms');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Ask';
+}
+
+function showAIResult(text) {
+  const body = document.getElementById('respBody');
+  const div = document.createElement('div');
+  div.style.cssText = 'position:fixed;bottom:70px;right:14px;z-index:100;background:var(--bg3);border:1px solid rgba(0,229,160,.2);border-radius:var(--r3);padding:14px 16px;max-width:380px;box-shadow:0 8px 30px rgba(0,0,0,.6);animation:ti .2s ease-out;font-size:12px;line-height:1.7;color:var(--text2);';
+  div.innerHTML = `<div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:6px;">✦ AI Response <button onclick="this.parentElement.parentElement.remove()" style="margin-left:auto;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px;">×</button></div><div style="white-space:pre-wrap;">${text}</div>`;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 8000);
+}
+
+function copyResponse() {
+  if (lastResponse) {
+    showToast('📋 Response copied');
+  } else {
+    showToast('Nothing to copy yet');
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let toastT;
+function showToast(msg) {
+  clearTimeout(toastT);
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.opacity = '1';
+  toastT = setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t?.remove(),300); }, 2600);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderCollections();
+</script>
+</body>
+</html>

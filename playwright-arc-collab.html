@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlaywrightArc — Collaboration & RBAC</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #08090d;
+  --bg2:    #0d1019;
+  --bg3:    #131822;
+  --bg4:    #192030;
+  --bg5:    #1f2840;
+  --border: #1c2540;
+  --border2:#253060;
+  --text:   #cdd8f0;
+  --text2:  #677aa0;
+  --text3:  #334060;
+  --green:  #00e5a0;
+  --green2: #00b87d;
+  --gdim:   rgba(0,229,160,0.07);
+  --gglow:  rgba(0,229,160,0.13);
+  --blue:   #4da8ff;
+  --bdim:   rgba(77,168,255,0.09);
+  --orange: #ff9d4a;
+  --odim:   rgba(255,157,74,0.09);
+  --red:    #ff3d5a;
+  --rdim:   rgba(255,61,90,0.09);
+  --yellow: #ffc947;
+  --ydim:   rgba(255,201,71,0.09);
+  --purple: #b06aff;
+  --pdim:   rgba(176,106,255,0.09);
+  --cyan:   #22d3ee;
+  --r:5px;--r2:9px;--r3:13px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{height:48px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--green);letter-spacing:-.5px;display:flex;align-items:center;gap:7px;}
+.logo-icon{width:22px;height:22px;background:var(--green);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:900;}
+.sep{width:1px;height:18px;background:var(--border2);}
+.page-label{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text2);}
+.page-label strong{color:var(--text);}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.current-user{display:flex;align-items:center;gap:8px;padding:4px 10px;border-radius:var(--r2);background:var(--bg3);border:1px solid var(--border);}
+.avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+
+.btn{display:flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r);border:none;cursor:pointer;font-family:'Instrument Sans',sans-serif;font-size:12px;font-weight:500;transition:all .14s;white-space:nowrap;}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid transparent;}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-outline:hover{border-color:var(--border2);color:var(--text);}
+.btn-green{background:var(--green);color:#000;font-weight:700;}
+.btn-green:hover{background:var(--green2);}
+.btn-red{background:var(--rdim);color:var(--red);border:1px solid rgba(255,61,90,.2);}
+.btn-red:hover{background:rgba(255,61,90,.16);}
+.btn-sm{padding:4px 10px;font-size:11px;}
+
+/* LAYOUT */
+.layout{flex:1;display:flex;overflow:hidden;}
+
+/* LEFT NAV */
+.left-nav{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.nav-section{padding:12px 0 4px;}
+.nav-label{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;padding:0 14px 6px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;color:var(--text2);font-size:12px;font-weight:500;border-left:2px solid transparent;transition:all .12s;}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:var(--gdim);color:var(--green);border-left-color:var(--green);}
+.nav-item .icon{font-size:14px;width:20px;text-align:center;}
+.nav-badge{margin-left:auto;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;background:var(--bg4);color:var(--text3);}
+.nav-badge.g{background:var(--gdim);color:var(--green);}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;}
+.view{display:none;padding:28px 32px;}
+.view.active{display:block;}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.sec-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);}
+.sec-sub{font-size:12px;color:var(--text3);margin-top:3px;}
+
+/* MEMBERS TABLE */
+.members-table{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden;margin-bottom:20px;}
+.mt-hdr{display:grid;grid-template-columns:2.5fr 1.2fr 1fr 1fr 80px;padding:9px 16px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;}
+.mt-row{display:grid;grid-template-columns:2.5fr 1.2fr 1fr 1fr 80px;padding:11px 16px;border-bottom:1px solid var(--border);align-items:center;transition:background .1s;}
+.mt-row:last-child{border-bottom:none;}
+.mt-row:hover{background:var(--bg3);}
+.member-info{display:flex;align-items:center;gap:10px;}
+.member-name{font-size:13px;font-weight:500;color:var(--text);}
+.member-email{font-size:11px;color:var(--text3);margin-top:1px;font-family:'DM Mono',monospace;}
+.role-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid;}
+.rb-owner{background:var(--ydim);color:var(--yellow);border-color:rgba(255,201,71,.2);}
+.rb-admin{background:var(--rdim);color:var(--red);border-color:rgba(255,61,90,.2);}
+.rb-editor{background:var(--bdim);color:var(--blue);border-color:rgba(77,168,255,.2);}
+.rb-viewer{background:var(--bg4);color:var(--text3);border-color:var(--border);}
+.rb-qa{background:var(--gdim);color:var(--green);border-color:rgba(0,229,160,.2);}
+.status-dot{width:7px;height:7px;border-radius:50%;}
+.sd-online{background:var(--green);}
+.sd-away{background:var(--yellow);}
+.sd-offline{background:var(--text3);}
+.last-active{font-size:11px;color:var(--text3);}
+
+/* ROLE CARDS */
+.role-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:24px;}
+.role-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);padding:18px;transition:all .14s;position:relative;}
+.role-card:hover{border-color:var(--border2);}
+.role-card.selected{border-color:var(--green);box-shadow:0 0 0 1px var(--gglow);}
+.role-card-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.role-icon{width:36px;height:36px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.role-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
+.role-desc{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.5;}
+.role-count{position:absolute;top:14px;right:14px;font-size:11px;color:var(--text3);background:var(--bg4);padding:2px 8px;border-radius:10px;}
+.perm-list{margin-top:10px;}
+.perm-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:11px;color:var(--text2);}
+.perm-check{color:var(--green);font-size:12px;}
+.perm-cross{color:var(--text3);font-size:12px;}
+
+/* PERMISSIONS MATRIX */
+.perm-matrix{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:20px;}
+.pm-hdr{display:grid;padding:9px 14px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;}
+.pm-row{display:grid;padding:8px 14px;border-bottom:1px solid var(--border);align-items:center;transition:background .1s;}
+.pm-row:last-child{border-bottom:none;}
+.pm-row:hover{background:var(--bg3);}
+.pm-resource{font-size:12px;color:var(--text);font-weight:500;}
+.pm-sub{font-size:10px;color:var(--text3);margin-top:1px;}
+.perm-cell{display:flex;align-items:center;justify-content:center;}
+.pc-yes{color:var(--green);font-size:14px;}
+.pc-no{color:var(--text3);font-size:14px;}
+.pc-partial{color:var(--yellow);font-size:12px;font-weight:700;}
+
+/* ACTIVITY FEED */
+.activity-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.activity-item:last-child{border-bottom:none;}
+.activity-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.activity-body{flex:1;}
+.activity-text{font-size:12px;color:var(--text2);line-height:1.6;}
+.activity-text strong{color:var(--text);font-weight:600;}
+.activity-time{font-size:11px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace;}
+.activity-tag{display:inline-block;padding:1px 7px;border-radius:4px;font-size:10px;font-weight:700;margin:0 2px;}
+.at-test{background:var(--gdim);color:var(--green);}
+.at-suite{background:var(--bdim);color:var(--blue);}
+.at-env{background:var(--ydim);color:var(--yellow);}
+.at-user{background:var(--pdim);color:var(--purple);}
+.at-config{background:var(--odim);color:var(--orange);}
+
+/* COMMENTS / ANNOTATIONS */
+.annotation{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:10px;transition:all .12s;}
+.annotation:hover{border-color:var(--border2);}
+.annotation-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.annotation-meta{flex:1;font-size:11px;color:var(--text3);}
+.annotation-meta strong{color:var(--text2);}
+.annotation-resolved{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;}
+.ar-open{background:var(--ydim);color:var(--yellow);}
+.ar-done{background:var(--gdim);color:var(--green);}
+.annotation-body{font-size:12px;color:var(--text2);line-height:1.65;}
+.annotation-ref{font-family:'DM Mono',monospace;font-size:11px;color:var(--blue);margin-top:6px;}
+.annotation-reply{font-size:12px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.annotation-reply strong{color:var(--text2);}
+
+/* PROJECTS / WORKSPACES */
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:24px;}
+.proj-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);padding:18px;transition:all .14s;cursor:pointer;}
+.proj-card:hover{border-color:var(--border2);}
+.proj-card.active-proj{border-color:var(--green);}
+.proj-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.proj-icon{width:36px;height:36px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.proj-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
+.proj-desc{font-size:11px;color:var(--text3);margin-top:2px;}
+.proj-stats{display:flex;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.proj-stat{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;}
+.proj-stat strong{color:var(--text2);}
+.proj-members{display:flex;margin-top:10px;}
+.proj-member-av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;border:2px solid var(--bg2);margin-left:-6px;}
+.proj-member-av:first-child{margin-left:0;}
+
+/* INVITE */
+.invite-box{background:var(--bg2);border:1px solid rgba(0,229,160,.15);border-radius:var(--r3);padding:20px;margin-bottom:20px;}
+.invite-link{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);margin-top:10px;}
+.invite-link-url{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* SSO */
+.sso-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.sso-logo{width:32px;height:32px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0;}
+.sso-name{font-size:13px;font-weight:600;color:var(--text);}
+.sso-desc{font-size:11px;color:var(--text3);margin-top:1px;}
+.conn-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;}
+.cp-on{background:var(--gdim);color:var(--green);}
+.cp-off{background:var(--bg4);color:var(--text3);}
+
+/* AUDIT LOG */
+.audit-row{display:grid;grid-template-columns:140px 1fr 120px 120px;padding:8px 14px;border-bottom:1px solid var(--border);align-items:center;font-size:12px;transition:background .1s;cursor:pointer;}
+.audit-row:hover{background:var(--bg3);}
+.audit-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);}
+.audit-action{color:var(--text2);}
+.audit-action strong{color:var(--text);}
+.audit-who{font-size:11px;color:var(--text3);}
+.audit-ip{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);}
+.audit-severity{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;}
+.as-info{background:var(--bdim);color:var(--blue);}
+.as-warn{background:var(--ydim);color:var(--yellow);}
+.as-critical{background:var(--rdim);color:var(--red);}
+
+/* AI BAR */
+.ai-bar-wrap{padding:10px 16px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.ai-inner{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:7px 12px;transition:border-color .15s;}
+.ai-inner:focus-within{border-color:var(--green);box-shadow:0 0 0 3px var(--gglow);}
+.ai-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;}
+.ai-input::placeholder{color:var(--text3);}
+.ai-send{background:var(--green);color:#000;border:none;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Instrument Sans',sans-serif;transition:all .14s;}
+.ai-send:hover{background:var(--green2);}
+.ai-send:disabled{opacity:.4;cursor:not-allowed;}
+.ai-spinner{width:12px;height:12px;border-radius:50%;border:2px solid rgba(0,229,160,.2);border-top-color:var(--green);animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ai-result{background:var(--bg3);border:1px solid rgba(0,229,160,.15);border-radius:var(--r2);padding:12px 14px;margin-top:8px;font-size:12px;color:var(--text2);line-height:1.7;white-space:pre-wrap;display:none;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r3);padding:24px;width:520px;max-height:84vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.8);}
+.modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);margin-bottom:16px;}
+.modal-field{margin-bottom:12px;}
+.modal-label{font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;}
+.modal-input,.modal-select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:8px 10px;font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .14s;}
+.modal-input:focus,.modal-select:focus{border-color:var(--green);}
+.modal-input::placeholder{color:var(--text3);}
+.modal-select option{background:var(--bg2);}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+
+/* SCROLLBARS */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--border2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:14px;right:14px;z-index:500;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:9px 14px;font-size:12px;color:var(--text);box-shadow:0 8px 30px rgba(0,0,0,.6);animation:ti .2s ease-out;}
+@keyframes ti{from{opacity:0;transform:translateY(6px);}to{opacity:1;}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo"><div class="logo-icon">▶</div>PlaywrightArc</div>
+  <div class="sep"></div>
+  <div class="page-label">Collaboration & <strong>Access Control</strong></div>
+  <div class="topbar-right">
+    <div class="current-user">
+      <div class="avatar" style="background:var(--gdim);color:var(--green);">SL</div>
+      <span style="font-size:12px;font-weight:600;color:var(--text);">Sarah Lee</span>
+      <span class="role-badge rb-owner" style="padding:2px 7px;font-size:10px;">Owner</span>
+    </div>
+    <button class="btn btn-green" onclick="showModal('inviteModal')">+ Invite Member</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT NAV -->
+  <div class="left-nav">
+    <div class="nav-section">
+      <div class="nav-label">Team</div>
+      <div class="nav-item active" id="nav-members" onclick="navTo('members')">
+        <span class="icon">👥</span> Members
+        <span class="nav-badge g">8</span>
+      </div>
+      <div class="nav-item" id="nav-projects" onclick="navTo('projects')">
+        <span class="icon">📁</span> Projects
+        <span class="nav-badge g">4</span>
+      </div>
+      <div class="nav-item" id="nav-activity" onclick="navTo('activity')">
+        <span class="icon">📡</span> Activity Feed
+      </div>
+      <div class="nav-item" id="nav-annotations" onclick="navTo('annotations')">
+        <span class="icon">💬</span> Annotations
+        <span class="nav-badge" style="background:var(--ydim);color:var(--yellow);">3</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Access Control</div>
+      <div class="nav-item" id="nav-roles" onclick="navTo('roles')">
+        <span class="icon">🎭</span> Roles
+        <span class="nav-badge g">5</span>
+      </div>
+      <div class="nav-item" id="nav-permissions" onclick="navTo('permissions')">
+        <span class="icon">🔑</span> Permissions Matrix
+      </div>
+      <div class="nav-item" id="nav-sso" onclick="navTo('sso')">
+        <span class="icon">🔐</span> SSO / SAML
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Compliance</div>
+      <div class="nav-item" id="nav-audit" onclick="navTo('audit')">
+        <span class="icon">📋</span> Audit Log
+      </div>
+      <div class="nav-item" id="nav-ai" onclick="navTo('ai')">
+        <span class="icon">✦</span> AI Team Assistant
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ══ MEMBERS ══ -->
+    <div class="view active" id="view-members">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Team Members</div><div class="sec-sub">8 members · 2 pending invites</div></div>
+        <div style="display:flex;gap:8px;">
+          <input style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:6px 12px;font-size:12px;outline:none;width:200px;" placeholder="Search members…">
+          <button class="btn btn-green" onclick="showModal('inviteModal')">+ Invite</button>
+        </div>
+      </div>
+
+      <div class="members-table">
+        <div class="mt-hdr"><span>Member</span><span>Role</span><span>Status</span><span>Last Active</span><span>Actions</span></div>
+        <div id="memberRows"></div>
+      </div>
+
+      <!-- PENDING INVITES -->
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Pending Invites</div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;">
+        ${[
+          {email:'james.park@myshop.com', role:'Editor', sent:'2h ago'},
+          {email:'nina.rossi@myshop.com', role:'QA Lead', sent:'1d ago'},
+        ].map(i=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);">
+          <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);flex:1;">${i.email}</span>
+          <span class="role-badge rb-editor" style="padding:2px 8px;">${i.role}</span>
+          <span style="font-size:11px;color:var(--text3);">Sent ${i.sent}</span>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('↺ Invite resent to ${i.email}')">Resend</button>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('Invite revoked')">Revoke</button>
+        </div>`).join('')}
+      </div>
+
+      <!-- INVITE LINK -->
+      <div class="invite-box" style="margin-top:20px;">
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);">Invite Link</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px;">Anyone with this link can request access to the workspace (requires approval).</div>
+        <div class="invite-link">
+          <span class="invite-link-url">https://arc.playwrightarc.com/invite/ws_ecomm/lnk_8f3k2j9m4n1p7q</span>
+          <button class="btn btn-outline btn-sm" onclick="showToast('📋 Link copied')">Copy</button>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('🔄 Link regenerated')">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PROJECTS ══ -->
+    <div class="view" id="view-projects">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Projects & Workspaces</div><div class="sec-sub">Isolate test suites, environments, and access per project</div></div>
+        <button class="btn btn-green" onclick="showModal('newProjModal')">+ New Project</button>
+      </div>
+      <div class="proj-grid" id="projGrid"></div>
+    </div>
+
+    <!-- ══ ACTIVITY FEED ══ -->
+    <div class="view" id="view-activity">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Activity Feed</div><div class="sec-sub">Real-time team activity across all projects</div></div>
+        <select style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text2);padding:6px 10px;font-size:12px;outline:none;cursor:pointer;" onchange="showToast('Filter applied')">
+          <option>All Activity</option><option>Test changes</option><option>Environment changes</option><option>User changes</option>
+        </select>
+      </div>
+      <div id="activityFeed"></div>
+    </div>
+
+    <!-- ══ ANNOTATIONS ══ -->
+    <div class="view" id="view-annotations">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Test Annotations</div><div class="sec-sub">Comments and discussions attached to specific tests or suites</div></div>
+        <button class="btn btn-green" onclick="showModal('annotModal')">+ New Annotation</button>
+      </div>
+      <div id="annotationsList"></div>
+    </div>
+
+    <!-- ══ ROLES ══ -->
+    <div class="view" id="view-roles">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Roles</div><div class="sec-sub">Define what each role can see and do across the platform</div></div>
+        <button class="btn btn-outline" onclick="showModal('newRoleModal')">+ Custom Role</button>
+      </div>
+      <div class="role-grid" id="roleGrid"></div>
+    </div>
+
+    <!-- ══ PERMISSIONS MATRIX ══ -->
+    <div class="view" id="view-permissions">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Permissions Matrix</div><div class="sec-sub">Full breakdown of what each role can do</div></div>
+        <button class="btn btn-outline" onclick="showToast('Exported permissions CSV')">↓ Export</button>
+      </div>
+      <div class="perm-matrix" id="permMatrix"></div>
+    </div>
+
+    <!-- ══ SSO / SAML ══ -->
+    <div class="view" id="view-sso">
+      <div class="sec-hdr">
+        <div><div class="sec-title">SSO & SAML</div><div class="sec-sub">Single sign-on configuration for enterprise identity providers</div></div>
+      </div>
+      <div id="ssoList"></div>
+
+      <div style="margin-top:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">SAML 2.0 Configuration</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          ${[
+            ['Entity ID','https://arc.playwrightarc.com/saml/metadata'],
+            ['ACS URL','https://arc.playwrightarc.com/saml/acs'],
+            ['SP Metadata URL','https://arc.playwrightarc.com/saml/metadata.xml'],
+            ['Name ID Format','urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress'],
+          ].map(([k,v])=>`<div>
+            <div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">${k}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);background:var(--bg3);padding:6px 10px;border-radius:var(--r);border:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v}</div>
+          </div>`).join('')}
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;">
+          <button class="btn btn-outline btn-sm" onclick="showToast('📋 Metadata XML copied')">Copy Metadata XML</button>
+          <button class="btn btn-green btn-sm" onclick="showToast('Testing SAML connection…')">Test Connection</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ AUDIT LOG ══ -->
+    <div class="view" id="view-audit">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Audit Log</div><div class="sec-sub">Complete tamper-proof record of all account actions</div></div>
+        <div style="display:flex;gap:8px;">
+          <input style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:6px 12px;font-size:12px;outline:none;width:200px;" placeholder="Search actions…">
+          <button class="btn btn-outline" onclick="showToast('Exporting audit log…')">↓ Export</button>
+        </div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;">
+        <div class="audit-row" style="background:var(--bg3);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;cursor:default;">
+          <span>Timestamp</span><span>Action</span><span>Actor</span><span>IP / Severity</span>
+        </div>
+        <div id="auditRows"></div>
+      </div>
+    </div>
+
+    <!-- ══ AI TEAM ASSISTANT ══ -->
+    <div class="view" id="view-ai">
+      <div class="sec-hdr">
+        <div><div class="sec-title">AI Team Assistant</div><div class="sec-sub">Ask anything about your team, permissions, or project health</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+        ${[
+          {q:'Who has access to Production secrets?', icon:'🔒'},
+          {q:'Which tests have no assigned owner?', icon:'🧪'},
+          {q:'Summarize team activity this week', icon:'📡'},
+          {q:'Who last modified the checkout suite?', icon:'📝'},
+          {q:'Generate an onboarding checklist for a new QA engineer', icon:'✅'},
+          {q:'Which team members have not logged in for 30+ days?', icon:'👥'},
+        ].map(s=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;cursor:pointer;transition:all .14s;display:flex;align-items:center;gap:10px;" onclick="setAIPrompt('${s.q}')" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
+          <span style="font-size:18px;">${s.icon}</span>
+          <span style="font-size:12px;color:var(--text2);">${s.q}</span>
+        </div>`).join('')}
+      </div>
+
+      <div style="background:var(--bg2);border:1px solid rgba(0,229,160,.15);border-radius:var(--r3);padding:16px;">
+        <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--green);margin-bottom:10px;">✦ Team Assistant</div>
+        <div class="ai-inner">
+          <span style="font-size:15px;">✦</span>
+          <input class="ai-input" id="aiInput" placeholder="Ask about permissions, team activity, test ownership…" onkeydown="if(event.key==='Enter')askAI()">
+          <button class="ai-send" id="aiSendBtn" onclick="askAI()">Ask</button>
+        </div>
+        <div class="ai-result" id="aiResult"></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<!-- MODALS -->
+<div class="modal-overlay" id="inviteModal">
+  <div class="modal">
+    <div class="modal-title">Invite Team Member</div>
+    <div class="modal-field"><div class="modal-label">Email address</div><input class="modal-input" placeholder="colleague@company.com"></div>
+    <div class="modal-field"><div class="modal-label">Role</div>
+      <select class="modal-select">
+        <option>Viewer — read-only access</option>
+        <option>Editor — create and edit tests</option>
+        <option>QA Lead — manage suites and runs</option>
+        <option>Admin — full access except billing</option>
+      </select>
+    </div>
+    <div class="modal-field"><div class="modal-label">Projects</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${['E-Commerce','Auth Suite','API Tests','Mobile'].map(p=>`<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" ${p!=='Mobile'?'checked':''} style="accent-color:var(--green);">${p}</label>`).join('')}
+      </div>
+    </div>
+    <div class="modal-field"><div class="modal-label">Personal message (optional)</div><input class="modal-input" placeholder="Welcome to the team!"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('inviteModal')">Cancel</button>
+      <button class="btn btn-green" onclick="hideModal('inviteModal');showToast('✉ Invite sent')">Send Invite</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="newProjModal">
+  <div class="modal">
+    <div class="modal-title">New Project</div>
+    <div class="modal-field"><div class="modal-label">Project name</div><input class="modal-input" placeholder="e.g. Mobile Regression"></div>
+    <div class="modal-field"><div class="modal-label">Description</div><input class="modal-input" placeholder="Short description…"></div>
+    <div class="modal-field"><div class="modal-label">Visibility</div>
+      <select class="modal-select"><option>Private — invite only</option><option>Internal — all team members</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('newProjModal')">Cancel</button>
+      <button class="btn btn-green" onclick="hideModal('newProjModal');showToast('✓ Project created')">Create Project</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="newRoleModal">
+  <div class="modal">
+    <div class="modal-title">Custom Role</div>
+    <div class="modal-field"><div class="modal-label">Role name</div><input class="modal-input" placeholder="e.g. Release Manager"></div>
+    <div class="modal-field"><div class="modal-label">Clone from</div><select class="modal-select"><option>Editor</option><option>QA Lead</option><option>Viewer</option><option>Admin</option></select></div>
+    <div class="modal-field"><div class="modal-label">Permissions</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;">
+        ${['Run tests','Edit tests','Create suites','Manage environments','View secrets','Edit secrets','Invite members','Manage roles','View reports','Export results'].map(p=>`<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" style="accent-color:var(--green);" ${['Run tests','View reports','Export results'].includes(p)?'checked':''}>${p}</label>`).join('')}
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('newRoleModal')">Cancel</button>
+      <button class="btn btn-green" onclick="hideModal('newRoleModal');showToast('✓ Custom role created')">Create Role</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="annotModal">
+  <div class="modal">
+    <div class="modal-title">New Annotation</div>
+    <div class="modal-field"><div class="modal-label">Attach to</div>
+      <select class="modal-select"><option>Test: Add to cart and verify badge</option><option>Suite: Checkout Flows</option><option>Suite: Authentication</option><option>Test: Apply valid coupon</option></select>
+    </div>
+    <div class="modal-field"><div class="modal-label">Comment</div>
+      <textarea class="modal-input" rows="4" placeholder="Add a note, question, or flag for this test…" style="resize:vertical;"></textarea>
+    </div>
+    <div class="modal-field"><div class="modal-label">Type</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm active-ann" onclick="setAnnType(this,'note')">📝 Note</button>
+        <button class="btn btn-outline btn-sm" onclick="setAnnType(this,'question')">❓ Question</button>
+        <button class="btn btn-outline btn-sm" onclick="setAnnType(this,'flag')">🚩 Flag</button>
+        <button class="btn btn-outline btn-sm" onclick="setAnnType(this,'approval')">✅ Approval needed</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('annotModal')">Cancel</button>
+      <button class="btn btn-green" onclick="hideModal('annotModal');showToast('✓ Annotation added')">Add Annotation</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const MEMBERS = [
+  { name:'Sarah Lee',     email:'sarah@myshop.com',    role:'owner',  av:'SL', bg:'#00e5a0', status:'online',  last:'Now' },
+  { name:'Alex Kim',      email:'alex@myshop.com',     role:'admin',  av:'AK', bg:'#ff3d5a', status:'online',  last:'5 min ago' },
+  { name:'Maria Santos',  email:'maria@myshop.com',    role:'qa',     av:'MS', bg:'#4da8ff', status:'online',  last:'12 min ago' },
+  { name:'Tom Wright',    email:'tom@myshop.com',      role:'editor', av:'TW', bg:'#b06aff', status:'away',    last:'1 hr ago' },
+  { name:'Priya Nair',    email:'priya@myshop.com',    role:'editor', av:'PN', bg:'#ff9d4a', status:'away',    last:'2 hrs ago' },
+  { name:'Chen Wei',      email:'chen@myshop.com',     role:'viewer', av:'CW', bg:'#22d3ee', status:'offline', last:'Yesterday' },
+  { name:'Lena Müller',   email:'lena@myshop.com',     role:'qa',     av:'LM', bg:'#ffc947', status:'offline', last:'2 days ago' },
+  { name:'Raj Patel',     email:'raj@myshop.com',      role:'viewer', av:'RP', bg:'#6a9955', status:'offline', last:'1 week ago' },
+];
+
+const ROLES = [
+  { name:'Owner', icon:'👑', bg:'var(--ydim)', count:1, desc:'Full control including billing and workspace deletion', perms:['All permissions'] },
+  { name:'Admin', icon:'🛡', bg:'var(--rdim)', count:1, desc:'Full access to all features except billing', perms:['Manage members','Manage roles','Edit all tests','Run tests','Manage environments','View secrets'] },
+  { name:'QA Lead', icon:'🧪', bg:'var(--gdim)', count:2, desc:'Create and manage test suites, trigger runs, view all results', perms:['Create suites','Edit tests','Run tests','View environments','View secrets','Manage schedules'] },
+  { name:'Editor', icon:'✏', bg:'var(--bdim)', count:2, desc:'Create and edit tests, run on non-production environments', perms:['Create tests','Edit own tests','Run tests (staging)','View reports','Comment'] },
+  { name:'Viewer', icon:'👁', bg:'var(--bg4)', count:2, desc:'Read-only access to test results and reports', perms:['View tests','View reports','View runs','Add comments'] },
+];
+
+const PROJECTS = [
+  { name:'E-Commerce Suite', icon:'🛒', bg:'var(--gdim)', desc:'Main checkout and product flows', tests:112, members:6, runs:1847, active:true,  avatars:['SL','AK','MS','TW','PN','CW'] },
+  { name:'Authentication',   icon:'🔐', bg:'var(--bdim)', desc:'Login, SSO, and session management tests', tests:48, members:4, runs:342, active:false, avatars:['SL','AK','MS','LM'] },
+  { name:'API Testing',      icon:'⚡', bg:'var(--pdim)', desc:'REST and GraphQL endpoint coverage', tests:67, members:3, runs:289, active:false, avatars:['MS','PN','RP'] },
+  { name:'Mobile Web',       icon:'📱', bg:'var(--odim)', desc:'Responsive and mobile-viewport tests', tests:0, members:2, runs:0, active:false, avatars:['TW','LM'] },
+];
+
+const ACTIVITY = [
+  { user:'Maria Santos', av:'MS', bg:'#4da8ff', action:'ran the <span class="activity-tag at-suite">Checkout Flows</span> suite on staging', time:'3 min ago' },
+  { user:'Alex Kim',     av:'AK', bg:'#ff3d5a', action:'updated environment variable <span class="activity-tag at-env">BASE_URL</span> in Staging', time:'18 min ago' },
+  { user:'Tom Wright',   av:'TW', bg:'#b06aff', action:'added test <span class="activity-tag at-test">Apply coupon with free shipping</span> to Checkout suite', time:'1 hr ago' },
+  { user:'Priya Nair',   av:'PN', bg:'#ff9d4a', action:'imported <strong>API Testing</strong> collection from Postman — 23 requests', time:'2 hrs ago' },
+  { user:'Sarah Lee',    av:'SL', bg:'#00e5a0', action:'invited <span class="activity-tag at-user">james.park@myshop.com</span> as Editor', time:'2 hrs ago' },
+  { user:'Maria Santos', av:'MS', bg:'#4da8ff', action:'marked test <span class="activity-tag at-test">Checkout as guest user</span> as <strong>flaky</strong> — added retry', time:'3 hrs ago' },
+  { user:'Chen Wei',     av:'CW', bg:'#22d3ee', action:'viewed the <span class="activity-tag at-suite">Authentication</span> run report #1844', time:'4 hrs ago' },
+  { user:'Alex Kim',     av:'AK', bg:'#ff3d5a', action:'updated <span class="activity-tag at-config">playwright.config.ts</span> — set retries to 2 on CI', time:'5 hrs ago' },
+  { user:'Lena Müller',  av:'LM', bg:'#ffc947', action:'added 3 assertions to <span class="activity-tag at-test">Login with valid credentials</span>', time:'Yesterday' },
+  { user:'Tom Wright',   av:'TW', bg:'#b06aff', action:'generated dataset <span class="activity-tag at-test">checkout-users.csv</span> using AI Data Gen', time:'Yesterday' },
+];
+
+const ANNOTATIONS = [
+  { user:'Maria Santos', av:'MS', bg:'#4da8ff', test:'checkout/coupon.spec.ts', ref:'Apply valid coupon — line 22',
+    body:'The `.coupon-feedback` selector keeps timing out at 5000ms. This is the third time this week. We should either fix the backend response time or bump the timeout to 10s and add a waitForSelector before the assertion.',
+    status:'open', time:'1 hr ago',
+    reply:{ user:'Alex Kim', av:'AK', bg:'#ff3d5a', text:'Agreed — I\'ve flagged this in the backend Jira board (SHOP-2341). In the meantime let\'s bump the timeout.' }},
+  { user:'Tom Wright', av:'TW', bg:'#b06aff', test:'auth/login.spec.ts', ref:'Login with valid credentials — line 7',
+    body:'Should we also test login via Google OAuth here? The Katalon import flagged it as an unsupported keyword — we haven\'t covered it yet in the migrated suite.',
+    status:'open', time:'3 hrs ago', reply:null },
+  { user:'Lena Müller', av:'LM', bg:'#ffc947', test:'checkout/guest-checkout.spec.ts', ref:'Checkout as guest user — line 42',
+    body:'Reviewed and approved — test coverage looks solid. The POM abstraction in CheckoutPage is clean. Good to merge.',
+    status:'resolved', time:'Yesterday', reply:null },
+];
+
+const PERMISSIONS = [
+  { resource:'Test Cases', sub:'Create, edit, delete', owner:'✓', admin:'✓', qa:'✓', editor:'Own only', viewer:'✗' },
+  { resource:'Test Suites', sub:'Manage collections', owner:'✓', admin:'✓', qa:'✓', editor:'✗', viewer:'✗' },
+  { resource:'Run Tests', sub:'Trigger executions', owner:'✓', admin:'✓', qa:'✓', editor:'Staging only', viewer:'✗' },
+  { resource:'View Reports', sub:'Access run results', owner:'✓', admin:'✓', qa:'✓', editor:'✓', viewer:'✓' },
+  { resource:'Environments', sub:'View/edit variables', owner:'✓', admin:'✓', qa:'View only', editor:'✗', viewer:'✗' },
+  { resource:'Secrets', sub:'Read encrypted values', owner:'✓', admin:'✓', qa:'✗', editor:'✗', viewer:'✗' },
+  { resource:'Data Sources', sub:'Upload/manage datasets', owner:'✓', admin:'✓', qa:'✓', editor:'✓', viewer:'✗' },
+  { resource:'API Testing', sub:'Create/run API tests', owner:'✓', admin:'✓', qa:'✓', editor:'✓', viewer:'✗' },
+  { resource:'Members', sub:'Invite/remove users', owner:'✓', admin:'✓', qa:'✗', editor:'✗', viewer:'✗' },
+  { resource:'Roles', sub:'Create/modify roles', owner:'✓', admin:'✗', qa:'✗', editor:'✗', viewer:'✗' },
+  { resource:'CI/CD Config', sub:'Edit pipeline settings', owner:'✓', admin:'✓', qa:'View only', editor:'✗', viewer:'✗' },
+  { resource:'Billing', sub:'Manage subscription', owner:'✓', admin:'✗', qa:'✗', editor:'✗', viewer:'✗' },
+];
+
+const SSO_PROVIDERS = [
+  { name:'Okta', icon:'⬡', bg:'#007dc1', connected:true, domain:'myshop.okta.com', users:8 },
+  { name:'Google Workspace', icon:'G', bg:'#4285f4', connected:false, domain:'—', users:0 },
+  { name:'Azure AD', icon:'⊞', bg:'#0078d4', connected:false, domain:'—', users:0 },
+  { name:'OneLogin', icon:'1', bg:'#e31837', connected:false, domain:'—', users:0 },
+];
+
+const AUDIT = [
+  { time:'2025-03-08 14:02', action:'Role changed: <strong>Tom Wright</strong> → Editor', who:'Sarah Lee', ip:'192.168.1.4', sev:'warn' },
+  { time:'2025-03-08 13:48', action:'Secret <strong>STRIPE_TEST_KEY</strong> rotated', who:'Alex Kim', ip:'192.168.1.12', sev:'warn' },
+  { time:'2025-03-08 13:22', action:'Test suite <strong>Checkout Flows</strong> run triggered', who:'Maria Santos', ip:'192.168.1.7', sev:'info' },
+  { time:'2025-03-08 12:55', action:'Invite sent to <strong>james.park@myshop.com</strong>', who:'Sarah Lee', ip:'192.168.1.4', sev:'info' },
+  { time:'2025-03-08 11:30', action:'Environment variable <strong>BASE_URL</strong> updated (Staging)', who:'Alex Kim', ip:'192.168.1.12', sev:'warn' },
+  { time:'2025-03-08 10:14', action:'API token <strong>arc_live_sk_8f3…</strong> generated', who:'Sarah Lee', ip:'192.168.1.4', sev:'critical' },
+  { time:'2025-03-08 09:02', action:'Member <strong>Raj Patel</strong> added to E-Commerce project', who:'Alex Kim', ip:'192.168.1.12', sev:'info' },
+  { time:'2025-03-07 17:44', action:'SAML IdP certificate updated (Okta)', who:'Sarah Lee', ip:'192.168.1.4', sev:'critical' },
+];
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+const VIEWS = ['members','projects','activity','annotations','roles','permissions','sso','audit','ai'];
+function navTo(view) {
+  VIEWS.forEach(v => {
+    document.getElementById('view-'+v)?.classList.toggle('active', v===view);
+    document.getElementById('nav-'+v)?.classList.toggle('active', v===view);
+  });
+  const renders = { members:renderMembers, projects:renderProjects, activity:renderActivity, annotations:renderAnnotations, roles:renderRoles, permissions:renderPermissions, sso:renderSSO, audit:renderAudit };
+  renders[view]?.();
+}
+
+// ── MEMBERS ───────────────────────────────────────────────────────────────────
+function renderMembers() {
+  document.getElementById('memberRows').innerHTML = MEMBERS.map(m => `
+    <div class="mt-row">
+      <div class="member-info">
+        <div class="avatar" style="background:${m.bg}22;color:${m.bg};">${m.av}</div>
+        <div>
+          <div class="member-name">${m.name}</div>
+          <div class="member-email">${m.email}</div>
+        </div>
+      </div>
+      <div><span class="role-badge rb-${m.role}">${m.role.charAt(0).toUpperCase()+m.role.slice(1)}</span></div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div class="status-dot sd-${m.status}"></div>
+        <span style="font-size:11px;color:var(--text3);">${m.status}</span>
+      </div>
+      <div class="last-active">${m.last}</div>
+      <div style="display:flex;gap:4px;">
+        ${m.role!=='owner'?`<button class="btn btn-ghost btn-sm" onclick="showToast('Edit role: ${m.name}')">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Removed ${m.name}')">×</button>`:`<span style="font-size:11px;color:var(--text3);">—</span>`}
+      </div>
+    </div>`).join('');
+}
+
+// ── PROJECTS ──────────────────────────────────────────────────────────────────
+function renderProjects() {
+  document.getElementById('projGrid').innerHTML = PROJECTS.map(p => `
+    <div class="proj-card ${p.active?'active-proj':''}" onclick="showToast('Opened: ${p.name}')">
+      <div class="proj-hdr">
+        <div class="proj-icon" style="background:${p.bg};">${p.icon}</div>
+        <div>
+          <div class="proj-name">${p.name}</div>
+          <div class="proj-desc">${p.desc}</div>
+        </div>
+        ${p.active?'<span style="font-size:10px;font-weight:700;background:var(--gdim);color:var(--green);padding:2px 8px;border-radius:10px;border:1px solid rgba(0,229,160,.2);margin-left:auto;">Active</span>':''}
+      </div>
+      <div class="proj-stats">
+        <span class="proj-stat"><strong>${p.tests}</strong> tests</span>
+        <span class="proj-stat"><strong>${p.members}</strong> members</span>
+        <span class="proj-stat"><strong>${p.runs.toLocaleString()}</strong> runs</span>
+      </div>
+      <div style="display:flex;align-items:center;margin-top:12px;gap:10px;">
+        <div class="proj-members">
+          ${p.avatars.slice(0,4).map((av,i)=>`<div class="proj-member-av" style="background:${MEMBERS.find(m=>m.av===av)?.bg||'var(--bg4)'}22;color:${MEMBERS.find(m=>m.av===av)?.bg||'var(--text3)'};">${av}</div>`).join('')}
+          ${p.avatars.length>4?`<div class="proj-member-av" style="background:var(--bg4);color:var(--text3);">+${p.avatars.length-4}</div>`:''}
+        </div>
+        <div style="margin-left:auto;display:flex;gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showModal('inviteModal')">+ Member</button>
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showToast('Project settings')">⚙</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── ACTIVITY ──────────────────────────────────────────────────────────────────
+function renderActivity() {
+  document.getElementById('activityFeed').innerHTML = ACTIVITY.map(a => `
+    <div class="activity-item">
+      <div class="activity-avatar" style="background:${a.bg}22;color:${a.bg};">${a.av}</div>
+      <div class="activity-body">
+        <div class="activity-text"><strong>${a.user}</strong> ${a.action}</div>
+        <div class="activity-time">${a.time}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── ANNOTATIONS ───────────────────────────────────────────────────────────────
+function renderAnnotations() {
+  document.getElementById('annotationsList').innerHTML = ANNOTATIONS.map(a => `
+    <div class="annotation">
+      <div class="annotation-hdr">
+        <div class="avatar" style="width:26px;height:26px;font-size:10px;background:${a.bg}22;color:${a.bg};">${a.av}</div>
+        <div class="annotation-meta"><strong>${a.user}</strong> · ${a.time}</div>
+        <span class="annotation-resolved ${a.status==='open'?'ar-open':'ar-done'}">${a.status==='open'?'Open':'Resolved'}</span>
+        ${a.status==='open'?`<button class="btn btn-ghost btn-sm" onclick="showToast('Marked resolved')">✓ Resolve</button>`:''}
+      </div>
+      <div class="annotation-body">${a.body}</div>
+      <div class="annotation-ref">📎 ${a.ref}</div>
+      ${a.reply?`<div class="annotation-reply">
+        <div class="avatar" style="width:20px;height:20px;font-size:9px;display:inline-flex;background:${a.reply.bg}22;color:${a.reply.bg};margin-right:6px;vertical-align:middle;">${a.reply.av}</div>
+        <strong>${a.reply.user}</strong> replied: ${a.reply.text}
+      </div>`:''}
+      ${a.status==='open'?`<div style="margin-top:10px;display:flex;gap:8px;">
+        <input style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:5px 10px;font-size:12px;outline:none;" placeholder="Reply…">
+        <button class="btn btn-outline btn-sm" onclick="showToast('Reply posted')">Reply</button>
+      </div>`:''}
+    </div>`).join('');
+}
+
+// ── ROLES ─────────────────────────────────────────────────────────────────────
+function renderRoles() {
+  document.getElementById('roleGrid').innerHTML = ROLES.map((r,i) => `
+    <div class="role-card ${i===0?'selected':''}" onclick="document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));this.classList.add('selected')">
+      <div class="role-count">${r.count} member${r.count!==1?'s':''}</div>
+      <div class="role-card-hdr">
+        <div class="role-icon" style="background:${r.bg};">${r.icon}</div>
+        <div>
+          <div class="role-name">${r.name}</div>
+          <div class="role-desc">${r.desc}</div>
+        </div>
+      </div>
+      <div class="perm-list">
+        ${r.perms.map(p=>`<div class="perm-row"><span class="perm-check">✓</span><span>${p}</span></div>`).join('')}
+      </div>
+      ${r.name!=='Owner'?`<div style="margin-top:12px;display:flex;gap:6px;"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showToast('Edit role: ${r.name}')">Edit</button></div>`:''}
+    </div>`).join('');
+}
+
+// ── PERMISSIONS MATRIX ────────────────────────────────────────────────────────
+function renderPermissions() {
+  const cols = `grid-template-columns:1.8fr repeat(5,1fr)`;
+  document.getElementById('permMatrix').innerHTML = `
+    <div style="display:grid;${cols};padding:9px 14px;background:var(--bg3);border-bottom:1px solid var(--border);">
+      <span style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;">Resource</span>
+      ${['Owner','Admin','QA Lead','Editor','Viewer'].map(r=>`<span style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;text-align:center;">${r}</span>`).join('')}
+    </div>
+    ${PERMISSIONS.map(p=>`<div style="display:grid;${cols};padding:9px 14px;border-bottom:1px solid var(--border);align-items:center;transition:background .1s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+      <div>
+        <div style="font-size:12px;color:var(--text);font-weight:500;">${p.resource}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px;">${p.sub}</div>
+      </div>
+      ${[p.owner,p.admin,p.qa,p.editor,p.viewer].map(v=>`<div style="display:flex;align-items:center;justify-content:center;">
+        ${v==='✓'?`<span style="color:var(--green);font-size:14px;">✓</span>`
+          :v==='✗'?`<span style="color:var(--text3);font-size:14px;">—</span>`
+          :`<span style="font-size:10px;font-weight:700;color:var(--yellow);background:var(--ydim);padding:2px 6px;border-radius:4px;">${v}</span>`}
+      </div>`).join('')}
+    </div>`).join('')}`;
+}
+
+// ── SSO ───────────────────────────────────────────────────────────────────────
+function renderSSO() {
+  document.getElementById('ssoList').innerHTML = SSO_PROVIDERS.map(s => `
+    <div class="sso-item">
+      <div class="sso-logo" style="background:${s.bg}22;color:${s.bg};font-family:'Syne',sans-serif;font-size:14px;">${s.icon}</div>
+      <div style="flex:1;">
+        <div class="sso-name">${s.name}</div>
+        <div class="sso-desc">${s.connected?`Domain: ${s.domain} · ${s.users} users synced`:'Not connected'}</div>
+      </div>
+      <span class="conn-pill ${s.connected?'cp-on':'cp-off'}">${s.connected?'● Connected':'○ Not connected'}</span>
+      ${s.connected
+        ? `<button class="btn btn-outline btn-sm" onclick="showToast('⟳ Syncing ${s.name} users…')">Sync</button>
+           <button class="btn btn-ghost btn-sm" onclick="showToast('Configure ${s.name}')">Configure</button>`
+        : `<button class="btn btn-green btn-sm" onclick="showToast('→ Connecting ${s.name}…')">Connect</button>`}
+    </div>`).join('');
+}
+
+// ── AUDIT LOG ─────────────────────────────────────────────────────────────────
+function renderAudit() {
+  document.getElementById('auditRows').innerHTML = AUDIT.map(a => `
+    <div class="audit-row" onclick="showToast('Audit detail: ${a.time}')">
+      <span class="audit-time">${a.time}</span>
+      <span class="audit-action">${a.action}</span>
+      <span class="audit-who">${a.who}</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="audit-ip">${a.ip}</span>
+        <span class="audit-severity as-${a.sev}">${a.sev}</span>
+      </div>
+    </div>`).join('');
+}
+
+// ── AI TEAM ASSISTANT ─────────────────────────────────────────────────────────
+function setAIPrompt(text) {
+  document.getElementById('aiInput').value = text;
+  document.getElementById('aiInput').focus();
+}
+
+async function askAI() {
+  const input = document.getElementById('aiInput');
+  const prompt = input.value.trim();
+  if (!prompt) return;
+  const btn = document.getElementById('aiSendBtn');
+  const result = document.getElementById('aiResult');
+  btn.disabled = true; btn.innerHTML = '<div class="ai-spinner"></div>';
+  result.style.display = 'none';
+
+  const context = `You are an AI assistant for PlaywrightArc Studio, a test automation platform. The team has 8 members: Sarah Lee (Owner), Alex Kim (Admin), Maria Santos (QA Lead), Tom Wright (Editor), Priya Nair (Editor), Chen Wei (Viewer), Lena Müller (QA Lead), Raj Patel (Viewer). There are 4 projects: E-Commerce (112 tests), Authentication (48 tests), API Testing (67 tests), Mobile Web (0 tests). Answer the following team/access/collaboration question concisely and helpfully.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:400,
+        messages:[{role:'user', content:`${context}\n\nQuestion: ${prompt}`}]
+      })
+    });
+    const data = await resp.json();
+    result.textContent = data.content?.[0]?.text || 'No response';
+    result.style.display = '';
+  } catch(e) {
+    const fallbacks = {
+      'production':  'Access to Production secrets is restricted to Owner (Sarah Lee) and Admin (Alex Kim) only. QA Leads, Editors, and Viewers cannot read or write secrets in any environment.',
+      'no assigned': 'Tests without explicit owners: "Apply valid coupon" (coupon.spec.ts) — last modified by Tom Wright. "Mobile Web" project has 0 tests and no assigned QA lead.',
+      'activity':    'This week: 10 test runs triggered, 2 environment variable changes, 1 new member invited, 1 secret rotation, 1 Postman import by Priya Nair. Most active: Maria Santos (4 actions).',
+      'logged in':   'Raj Patel last active 1 week ago. All other members active within 2 days. No members meet the 30+ day inactivity threshold yet.',
+    };
+    const key = Object.keys(fallbacks).find(k => prompt.toLowerCase().includes(k));
+    result.textContent = key ? fallbacks[key] : 'Based on the current team setup, I can see 8 members across 4 projects with roles ranging from Owner to Viewer. For specific access questions, please check the Permissions Matrix or Audit Log.';
+    result.style.display = '';
+  }
+  btn.disabled = false; btn.textContent = 'Ask';
+  input.value = '';
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function showModal(id) { document.getElementById(id).classList.add('open'); }
+function hideModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); }));
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let toastT;
+function showToast(msg) {
+  clearTimeout(toastT);
+  let t = document.querySelector('.toast');
+  if (!t) { t=document.createElement('div'); t.className='toast'; document.body.appendChild(t); }
+  t.textContent=msg; t.style.opacity='1';
+  toastT=setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t?.remove(),300); }, 2600);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+navTo('members');
+</script>
+</body>
+</html>

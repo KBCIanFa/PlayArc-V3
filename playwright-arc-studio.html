@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlaywrightArc Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #07080c;
+  --bg2:    #0c0f18;
+  --bg3:    #111520;
+  --bg4:    #181e2e;
+  --bg5:    #1e2640;
+  --border: #1a2236;
+  --border2:#222e48;
+  --text:   #cdd8f0;
+  --text2:  #60748a;
+  --text3:  #2e3d55;
+  --green:  #00e5a0;
+  --green2: #00b87d;
+  --gdim:   rgba(0,229,160,0.08);
+  --gglow:  rgba(0,229,160,0.15);
+  --blue:   #4da8ff;
+  --bdim:   rgba(77,168,255,0.09);
+  --red:    #ff3d5a;
+  --rdim:   rgba(255,61,90,0.09);
+  --yellow: #ffc947;
+  --purple: #b06aff;
+  --orange: #ff9d4a;
+  --r:5px; --r2:9px; --r3:14px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:'Instrument Sans',sans-serif;font-size:13px;color:var(--text);display:flex;flex-direction:column;}
+
+/* ── GLOBAL TOPBAR ─────────────────────────────────────────────────────────── */
+.topbar{
+  height:46px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 0 0 0;flex-shrink:0;z-index:100;
+  position:relative;
+}
+.logo-area{
+  width:220px;flex-shrink:0;display:flex;align-items:center;gap:9px;
+  padding:0 16px;border-right:1px solid var(--border);height:100%;
+}
+.logo-mark{
+  width:26px;height:26px;background:var(--green);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  color:#000;font-size:13px;font-weight:900;flex-shrink:0;
+}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--green);letter-spacing:-.4px;line-height:1;}
+.logo-sub{font-size:9px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;}
+
+.topbar-mid{flex:1;display:flex;align-items:center;gap:4px;padding:0 12px;}
+.tb-crumb{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:4px;}
+.tb-crumb-sep{color:var(--text3);}
+.tb-crumb-active{color:var(--text2);font-weight:500;}
+
+/* GLOBAL SEARCH */
+.global-search{
+  display:flex;align-items:center;gap:8px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:var(--r2);
+  padding:5px 12px;width:260px;cursor:text;transition:all .15s;
+}
+.global-search:focus-within{border-color:var(--border2);width:300px;}
+.gs-icon{color:var(--text3);font-size:13px;}
+.gs-input{background:transparent;border:none;outline:none;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:12px;width:100%;}
+.gs-input::placeholder{color:var(--text3);}
+.gs-kbd{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:var(--bg4);padding:1px 5px;border-radius:3px;flex-shrink:0;}
+
+.topbar-right{display:flex;align-items:center;gap:6px;padding:0 14px;}
+.tb-btn{
+  display:flex;align-items:center;gap:5px;padding:5px 11px;
+  border-radius:var(--r);border:none;cursor:pointer;
+  font-family:'Instrument Sans',sans-serif;font-size:12px;font-weight:500;
+  transition:all .14s;white-space:nowrap;
+}
+.tb-ghost{background:transparent;color:var(--text2);border:1px solid transparent;}
+.tb-ghost:hover{background:var(--bg3);color:var(--text);}
+.tb-outline{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.tb-outline:hover{border-color:var(--border2);color:var(--text);}
+.tb-green{background:var(--green);color:#000;font-weight:700;}
+.tb-green:hover{background:var(--green2);}
+
+/* ENV BADGE */
+.env-badge{
+  display:flex;align-items:center;gap:5px;padding:4px 10px;
+  border-radius:20px;background:var(--gdim);border:1px solid rgba(0,229,160,.18);
+  font-size:11px;font-weight:700;color:var(--green);cursor:pointer;transition:all .14s;
+}
+.env-badge:hover{background:rgba(0,229,160,.13);}
+.env-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+
+/* USER PILL */
+.user-pill{
+  display:flex;align-items:center;gap:7px;padding:4px 10px 4px 5px;
+  border-radius:20px;background:var(--bg3);border:1px solid var(--border);
+  cursor:pointer;transition:all .14s;
+}
+.user-pill:hover{border-color:var(--border2);}
+.user-av{
+  width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;
+}
+.user-name{font-size:12px;font-weight:600;color:var(--text);}
+
+/* NOTIF BELL */
+.notif-btn{
+  width:32px;height:32px;border-radius:var(--r);background:transparent;
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text2);font-size:15px;position:relative;transition:all .14s;
+}
+.notif-btn:hover{background:var(--bg3);color:var(--text);}
+.notif-pip{
+  position:absolute;top:5px;right:5px;width:7px;height:7px;
+  border-radius:50%;background:var(--red);border:2px solid var(--bg2);
+}
+
+/* ── BODY LAYOUT ───────────────────────────────────────────────────────────── */
+.body-layout{flex:1;display:flex;overflow:hidden;}
+
+/* ── SIDEBAR ───────────────────────────────────────────────────────────────── */
+.sidebar{
+  width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;transition:width .2s ease;
+}
+.sidebar.collapsed{width:52px;}
+
+/* PROJECT SWITCHER */
+.proj-switcher{
+  padding:10px 10px 8px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.proj-btn{
+  display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--r2);
+  background:var(--bg3);border:1px solid var(--border);cursor:pointer;
+  transition:all .14s;width:100%;
+}
+.proj-btn:hover{border-color:var(--border2);}
+.proj-icon{
+  width:26px;height:26px;border-radius:6px;background:var(--gdim);
+  display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;
+}
+.proj-name{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.proj-caret{font-size:10px;color:var(--text3);}
+
+/* NAV */
+.nav-scroll{flex:1;overflow-y:auto;padding:8px 0;}
+.nav-group{margin-bottom:4px;}
+.nav-group-label{
+  font-family:'Syne',sans-serif;font-size:9px;font-weight:700;
+  color:var(--text3);letter-spacing:.9px;text-transform:uppercase;
+  padding:8px 14px 4px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:9px;padding:7px 12px;
+  cursor:pointer;color:var(--text2);font-size:12px;font-weight:500;
+  border-left:2px solid transparent;transition:all .12s;position:relative;
+  border-radius:0 var(--r) var(--r) 0;margin-right:6px;
+}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{
+  background:var(--gdim);color:var(--green);
+  border-left-color:var(--green);
+}
+.nav-icon{
+  width:28px;height:28px;border-radius:var(--r);display:flex;align-items:center;
+  justify-content:center;font-size:14px;flex-shrink:0;transition:all .14s;
+}
+.nav-item.active .nav-icon{background:rgba(0,229,160,.12);}
+.nav-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-badge{
+  font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;
+  background:var(--bg4);color:var(--text3);flex-shrink:0;
+}
+.nav-item.active .nav-badge{background:var(--gdim);color:var(--green);}
+.nav-badge.red{background:var(--rdim);color:var(--red);}
+.nav-badge.yellow{background:rgba(255,201,71,.1);color:var(--yellow);}
+
+/* STATUS dot on nav */
+.nav-status{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.ns-green{background:var(--green);}
+.ns-yellow{background:var(--yellow);animation:blink 2s infinite;}
+.ns-red{background:var(--red);}
+@keyframes blink{0%,100%{opacity:.4;}50%{opacity:1;}}
+
+/* COLLAPSE TOGGLE */
+.sidebar-collapse{
+  height:38px;border-top:1px solid var(--border);display:flex;align-items:center;
+  padding:0 14px;cursor:pointer;color:var(--text3);font-size:12px;transition:all .12s;
+  flex-shrink:0;
+}
+.sidebar-collapse:hover{background:var(--bg3);color:var(--text2);}
+.sc-icon{font-size:16px;transition:transform .2s;}
+.sidebar.collapsed .sc-icon{transform:rotate(180deg);}
+.sc-label{margin-left:8px;font-size:11px;font-weight:500;}
+
+/* SIDEBAR BOTTOM — run status strip */
+.run-strip{
+  padding:10px;border-top:1px solid var(--border);flex-shrink:0;
+}
+.rs-inner{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);
+  padding:9px 10px;
+}
+.rs-label{font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.rs-bar-wrap{background:var(--bg4);border-radius:3px;height:4px;overflow:hidden;margin-bottom:6px;}
+.rs-bar{height:100%;background:var(--green);border-radius:3px;transition:width .5s ease;}
+.rs-stats{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);}
+.rs-stat-pass{color:var(--green);}
+.rs-stat-fail{color:var(--red);}
+
+/* ── IFRAME CONTAINER ──────────────────────────────────────────────────────── */
+.frame-area{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
+
+/* BREADCRUMB / MODULE HEADER */
+.module-header{
+  height:38px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;
+}
+.mh-icon{font-size:15px;}
+.mh-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);flex:1;}
+.mh-actions{display:flex;align-items:center;gap:6px;}
+.mh-tag{
+  font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
+  background:var(--gdim);color:var(--green);border:1px solid rgba(0,229,160,.2);
+}
+
+/* IFRAME */
+.module-iframe{
+  flex:1;border:none;background:var(--bg);
+  opacity:0;transition:opacity .25s ease;
+}
+.module-iframe.loaded{opacity:1;}
+
+/* SPLASH / HOME */
+.home-view{
+  flex:1;overflow-y:auto;padding:40px 48px;
+  background:var(--bg);
+}
+.home-greeting{
+  font-family:'Syne',sans-serif;font-size:28px;font-weight:800;
+  color:var(--text);margin-bottom:6px;
+}
+.home-sub{font-size:14px;color:var(--text2);margin-bottom:36px;}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px;}
+.kpi-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);
+  padding:18px;transition:all .14s;cursor:pointer;
+}
+.kpi-card:hover{border-color:var(--border2);}
+.kpi-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--text);line-height:1;}
+.kpi-label{font-size:11px;color:var(--text3);margin-top:5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;}
+.kpi-delta{font-family:'DM Mono',monospace;font-size:11px;margin-top:8px;}
+.delta-up{color:var(--green);}
+.delta-dn{color:var(--red);}
+
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:32px;}
+.quick-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);
+  padding:18px 16px;cursor:pointer;transition:all .14s;display:flex;flex-direction:column;gap:10px;
+}
+.quick-card:hover{border-color:var(--green);background:var(--gdim);}
+.quick-card:hover .qc-icon{color:var(--green);}
+.qc-icon{font-size:22px;color:var(--text3);transition:color .14s;}
+.qc-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);}
+.qc-desc{font-size:11px;color:var(--text3);line-height:1.5;}
+
+.recent-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.recent-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden;}
+.rc-hdr{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.rc-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
+.rc-link{font-size:11px;color:var(--green);cursor:pointer;}
+.rc-link:hover{text-decoration:underline;}
+
+.run-row{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.run-row:hover{background:var(--bg3);}
+.run-row:last-child{border-bottom:none;}
+.run-pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:'DM Mono',monospace;flex-shrink:0;}
+.rp-pass{background:var(--gdim);color:var(--green);}
+.rp-fail{background:var(--rdim);color:var(--red);}
+.rp-run{background:var(--bdim);color:var(--blue);animation:blink 1s infinite;}
+.run-name{font-size:12px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.run-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);flex-shrink:0;}
+
+/* SPOTLIGHT SEARCH */
+.spotlight-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;
+  display:none;align-items:flex-start;justify-content:center;padding-top:100px;
+}
+.spotlight-overlay.open{display:flex;}
+.spotlight-box{
+  background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r3);
+  width:560px;box-shadow:0 20px 60px rgba(0,0,0,.8);overflow:hidden;
+}
+.sp-input-row{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.sp-icon{font-size:16px;color:var(--text3);}
+.sp-input{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:15px;
+}
+.sp-input::placeholder{color:var(--text3);}
+.sp-results{max-height:360px;overflow-y:auto;}
+.sp-section{padding:8px 0;}
+.sp-sec-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:4px 16px;}
+.sp-item{
+  display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;transition:background .1s;
+}
+.sp-item:hover,.sp-item.selected{background:var(--bg4);}
+.sp-item-icon{width:28px;height:28px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sp-item-label{flex:1;font-size:13px;color:var(--text2);}
+.sp-item:hover .sp-item-label,.sp-item.selected .sp-item-label{color:var(--text);}
+.sp-item-kbd{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:var(--bg5);padding:2px 6px;border-radius:3px;}
+
+/* NOTIFICATION PANEL */
+.notif-panel{
+  position:fixed;top:52px;right:14px;width:340px;background:var(--bg2);
+  border:1px solid var(--border2);border-radius:var(--r3);z-index:300;
+  box-shadow:0 12px 40px rgba(0,0,0,.7);display:none;overflow:hidden;
+}
+.notif-panel.open{display:block;}
+.np-hdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.np-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
+.notif-item{display:flex;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.notif-item:hover{background:var(--bg3);}
+.notif-item:last-child{border-bottom:none;}
+.ni-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.ni-body{flex:1;}
+.ni-text{font-size:12px;color:var(--text2);line-height:1.5;}
+.ni-text strong{color:var(--text);}
+.ni-time{font-size:10px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace;}
+
+/* PROJECT DROPDOWN */
+.proj-dropdown{
+  position:fixed;top:98px;left:10px;width:200px;background:var(--bg2);
+  border:1px solid var(--border2);border-radius:var(--r2);z-index:300;
+  box-shadow:0 8px 30px rgba(0,0,0,.7);display:none;overflow:hidden;
+}
+.proj-dropdown.open{display:block;}
+.pd-item{
+  display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;
+  font-size:12px;color:var(--text2);transition:background .1s;
+}
+.pd-item:hover{background:var(--bg3);color:var(--text);}
+.pd-item.active{color:var(--green);}
+.pd-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:600;
+  background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);
+  padding:9px 18px;font-size:12px;color:var(--text);
+  box-shadow:0 8px 30px rgba(0,0,0,.6);animation:ti .2s ease-out;
+  white-space:nowrap;
+}
+@keyframes ti{from{opacity:0;transform:translateX(-50%) translateY(6px);}to{opacity:1;}}
+
+/* SCROLLBARS */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--border2);}
+
+/* LOADING SHIMMER */
+.loading-screen{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:16px;
+}
+.loading-logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--green);display:flex;align-items:center;gap:10px;}
+.loading-mark{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#000;font-size:16px;font-weight:900;}
+.loading-bar{width:200px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.loading-progress{height:100%;background:var(--green);border-radius:2px;animation:load-prog 1.2s ease-out forwards;}
+@keyframes load-prog{from{width:0;}to{width:100%;}}
+.loading-label{font-size:12px;color:var(--text3);}
+</style>
+</head>
+<body>
+
+<!-- ── GLOBAL TOPBAR ────────────────────────────────────────────────────────── -->
+<div class="topbar">
+  <div class="logo-area" onclick="goHome()" style="cursor:pointer;">
+    <div class="logo-mark">▶</div>
+    <div>
+      <div class="logo-text">PlaywrightArc</div>
+      <div class="logo-sub">Studio</div>
+    </div>
+  </div>
+
+  <div class="topbar-mid">
+    <div class="tb-crumb" id="breadcrumb">
+      <span class="tb-crumb-active">Home</span>
+    </div>
+    <div style="margin-left:auto;"></div>
+    <div class="global-search" onclick="openSpotlight()">
+      <span class="gs-icon">🔍</span>
+      <input class="gs-input" placeholder="Search tests, suites, environments…" readonly onclick="openSpotlight()">
+      <span class="gs-kbd">⌘K</span>
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <div class="env-badge" onclick="toggleProjDropdown()" id="envBadge">
+      <div class="env-dot"></div>
+      <span id="activeEnvLabel">Local Dev</span>
+      <span style="color:var(--green2);font-size:10px;">▾</span>
+    </div>
+
+    <button class="tb-green tb-btn" id="runBtn" onclick="triggerRun()">▶ Run</button>
+
+    <div class="notif-btn" onclick="toggleNotif()" id="notifBtn">
+      🔔
+      <div class="notif-pip" id="notifPip"></div>
+    </div>
+
+    <div class="user-pill" onclick="showToast('Profile settings')">
+      <div class="user-av" style="background:rgba(0,229,160,.12);color:var(--green);">SL</div>
+      <span class="user-name">Sarah Lee</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── BODY ─────────────────────────────────────────────────────────────────── -->
+<div class="body-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+
+    <!-- PROJECT SWITCHER -->
+    <div class="proj-switcher">
+      <div class="proj-btn" onclick="toggleProjDropdown()" id="projBtn">
+        <div class="proj-icon">🛒</div>
+        <span class="proj-name" id="projName">E-Commerce Suite</span>
+        <span class="proj-caret">▾</span>
+      </div>
+    </div>
+
+    <!-- NAV -->
+    <div class="nav-scroll">
+
+      <div class="nav-group">
+        <div class="nav-group-label">Workspace</div>
+        <div class="nav-item active" id="nav-home" onclick="navTo('home')">
+          <div class="nav-icon">🏠</div>
+          <span class="nav-label">Home</span>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Testing</div>
+        <div class="nav-item" id="nav-import" onclick="navTo('import')">
+          <div class="nav-icon">📥</div>
+          <span class="nav-label">Katalon Import</span>
+          <span class="nav-badge" style="background:var(--gdim);color:var(--green);">✓</span>
+        </div>
+        <div class="nav-item" id="nav-designer" onclick="navTo('designer')">
+          <div class="nav-icon">🎨</div>
+          <span class="nav-label">Test Designer</span>
+        </div>
+        <div class="nav-item" id="nav-code" onclick="navTo('code')">
+          <div class="nav-icon">⌨</div>
+          <span class="nav-label">Code Mode</span>
+        </div>
+        <div class="nav-item" id="nav-api" onclick="navTo('api')">
+          <div class="nav-icon">⚡</div>
+          <span class="nav-label">API Testing</span>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Execution</div>
+        <div class="nav-item" id="nav-execution" onclick="navTo('execution')">
+          <div class="nav-icon">▶</div>
+          <span class="nav-label">Run Dashboard</span>
+          <div class="nav-status ns-yellow" id="execStatusDot"></div>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Configuration</div>
+        <div class="nav-item" id="nav-envdata" onclick="navTo('envdata')">
+          <div class="nav-icon">🌍</div>
+          <span class="nav-label">Environments</span>
+        </div>
+        <div class="nav-item" id="nav-cicd" onclick="navTo('cicd')">
+          <div class="nav-icon">⚙</div>
+          <span class="nav-label">CI/CD</span>
+          <span class="nav-badge yellow">!</span>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Team</div>
+        <div class="nav-item" id="nav-collab" onclick="navTo('collab')">
+          <div class="nav-icon">👥</div>
+          <span class="nav-label">Collaboration</span>
+          <span class="nav-badge red">3</span>
+        </div>
+      </div>
+
+    </div><!-- /nav-scroll -->
+
+    <!-- RUN STATUS STRIP -->
+    <div class="run-strip" id="runStrip">
+      <div class="rs-inner">
+        <div class="rs-label" id="rsLabel">Last Run</div>
+        <div class="rs-bar-wrap"><div class="rs-bar" id="rsBar" style="width:98%;"></div></div>
+        <div class="rs-stats">
+          <span class="rs-stat-pass" id="rsPassed">✓ 111</span>
+          <span class="rs-stat-fail" id="rsFailed">✗ 1</span>
+          <span id="rsDur">38.4s</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLLAPSE TOGGLE -->
+    <div class="sidebar-collapse" onclick="toggleSidebar()">
+      <span class="sc-icon">◀</span>
+      <span class="sc-label">Collapse</span>
+    </div>
+
+  </div><!-- /sidebar -->
+
+  <!-- FRAME AREA -->
+  <div class="frame-area" id="frameArea">
+
+    <!-- HOME VIEW -->
+    <div class="home-view" id="homeView">
+      <div class="home-greeting">Good morning, Sarah 👋</div>
+      <div class="home-sub">E-Commerce Suite · Last run 3 min ago · <span style="color:var(--red);">1 test failing</span></div>
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card" onclick="navTo('execution')">
+          <div class="kpi-val">112</div>
+          <div class="kpi-label">Total Tests</div>
+          <div class="kpi-delta delta-up">↑ +3 this week</div>
+        </div>
+        <div class="kpi-card" onclick="navTo('execution')">
+          <div class="kpi-val" style="color:var(--green);">98.2%</div>
+          <div class="kpi-label">Pass Rate</div>
+          <div class="kpi-delta delta-dn">↓ -0.9% vs last week</div>
+        </div>
+        <div class="kpi-card" onclick="navTo('execution')">
+          <div class="kpi-val">1,847</div>
+          <div class="kpi-label">Total Runs</div>
+          <div class="kpi-delta delta-up">↑ +12 today</div>
+        </div>
+        <div class="kpi-card" onclick="navTo('cicd')">
+          <div class="kpi-val" style="color:var(--yellow);">2</div>
+          <div class="kpi-label">Flaky Tests</div>
+          <div class="kpi-delta" style="color:var(--text3);">— unchanged</div>
+        </div>
+      </div>
+
+      <!-- QUICK LAUNCH -->
+      <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Quick Launch</div>
+      <div class="quick-grid">
+        <div class="quick-card" onclick="navTo('designer')">
+          <div class="qc-icon">🎨</div>
+          <div class="qc-name">New Test</div>
+          <div class="qc-desc">Build a test visually with drag-and-drop</div>
+        </div>
+        <div class="quick-card" onclick="navTo('execution')">
+          <div class="qc-icon">▶</div>
+          <div class="qc-name">Run Suite</div>
+          <div class="qc-desc">Execute Checkout Flows on Staging</div>
+        </div>
+        <div class="quick-card" onclick="navTo('import')">
+          <div class="qc-icon">📥</div>
+          <div class="qc-name">Import Tests</div>
+          <div class="qc-desc">Migrate from Katalon or Postman</div>
+        </div>
+        <div class="quick-card" onclick="navTo('api')">
+          <div class="qc-icon">⚡</div>
+          <div class="qc-name">New API Test</div>
+          <div class="qc-desc">Build and run REST or GraphQL requests</div>
+        </div>
+        <div class="quick-card" onclick="navTo('envdata')">
+          <div class="qc-icon">🌍</div>
+          <div class="qc-name">Switch Env</div>
+          <div class="qc-desc">Change active environment profile</div>
+        </div>
+        <div class="quick-card" onclick="navTo('code')">
+          <div class="qc-icon">⌨</div>
+          <div class="qc-name">Edit Code</div>
+          <div class="qc-desc">Open guest-checkout.spec.ts in Code Mode</div>
+        </div>
+        <div class="quick-card" onclick="navTo('cicd')">
+          <div class="qc-icon">⚙</div>
+          <div class="qc-name">CI/CD Config</div>
+          <div class="qc-desc">View pipeline status and run history</div>
+        </div>
+        <div class="quick-card" onclick="navTo('collab')">
+          <div class="qc-icon">👥</div>
+          <div class="qc-name">Team</div>
+          <div class="qc-desc">3 open annotations need your review</div>
+        </div>
+      </div>
+
+      <!-- RECENT -->
+      <div class="recent-grid">
+        <div class="recent-card">
+          <div class="rc-hdr">
+            <span class="rc-title">Recent Runs</span>
+            <span class="rc-link" onclick="navTo('execution')">View all →</span>
+          </div>
+          <div class="run-row" onclick="navTo('execution')">
+            <span class="run-pill rp-run">Running</span>
+            <span class="run-name">PR #247 — feat/coupon-fix</span>
+            <span class="run-meta">now</span>
+          </div>
+          <div class="run-row" onclick="navTo('execution')">
+            <span class="run-pill rp-fail">Failed</span>
+            <span class="run-name">Push → main (1 failing)</span>
+            <span class="run-meta">3m ago</span>
+          </div>
+          <div class="run-row" onclick="navTo('execution')">
+            <span class="run-pill rp-pass">Passed</span>
+            <span class="run-name">Scheduled — nightly regression</span>
+            <span class="run-meta">7h ago</span>
+          </div>
+          <div class="run-row" onclick="navTo('execution')">
+            <span class="run-pill rp-pass">Passed</span>
+            <span class="run-name">Push → main (112/112)</span>
+            <span class="run-meta">1d ago</span>
+          </div>
+        </div>
+
+        <div class="recent-card">
+          <div class="rc-hdr">
+            <span class="rc-title">Team Activity</span>
+            <span class="rc-link" onclick="navTo('collab')">View all →</span>
+          </div>
+          ${[
+            {av:'MS',bg:'#4da8ff',name:'Maria Santos',action:'ran Checkout Flows on staging',time:'3m ago'},
+            {av:'AK',bg:'#ff3d5a',name:'Alex Kim',action:'updated BASE_URL in Staging env',time:'18m ago'},
+            {av:'TW',bg:'#b06aff',name:'Tom Wright',action:'added test: Apply coupon + free shipping',time:'1h ago'},
+            {av:'PN',bg:'#ff9d4a',name:'Priya Nair',action:'imported Postman collection (23 requests)',time:'2h ago'},
+          ].map(a=>`<div class="run-row" onclick="navTo('collab')">
+            <div style="width:22px;height:22px;border-radius:50%;background:${a.bg}22;color:${a.bg};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;">${a.av}</div>
+            <span class="run-name"><strong style="color:var(--text);">${a.name}</strong> ${a.action}</span>
+            <span class="run-meta">${a.time}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+
+    </div><!-- /homeView -->
+
+    <!-- MODULE IFRAME (hidden initially) -->
+    <div id="moduleWrapper" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+      <div class="module-header" id="moduleHeader">
+        <span class="mh-icon" id="mhIcon">📥</span>
+        <span class="mh-title" id="mhTitle">Module</span>
+        <div class="mh-actions" id="mhActions"></div>
+      </div>
+      <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo"><div class="loading-mark">▶</div>PlaywrightArc</div>
+        <div class="loading-bar"><div class="loading-progress"></div></div>
+        <div class="loading-label" id="loadingLabel">Loading module…</div>
+      </div>
+      <iframe class="module-iframe" id="moduleFrame" onload="onFrameLoad()"></iframe>
+    </div>
+
+  </div><!-- /frameArea -->
+</div><!-- /body-layout -->
+
+<!-- ── SPOTLIGHT ─────────────────────────────────────────────────────────────── -->
+<div class="spotlight-overlay" id="spotlightOverlay" onclick="if(event.target===this)closeSpotlight()">
+  <div class="spotlight-box">
+    <div class="sp-input-row">
+      <span class="sp-icon">🔍</span>
+      <input class="sp-input" id="spInput" placeholder="Search modules, tests, commands…" oninput="filterSpotlight(this.value)" onkeydown="spKey(event)" autofocus>
+    </div>
+    <div class="sp-results" id="spResults"></div>
+  </div>
+</div>
+
+<!-- ── NOTIFICATION PANEL ───────────────────────────────────────────────────── -->
+<div class="notif-panel" id="notifPanel">
+  <div class="np-hdr">
+    <span class="np-title">Notifications</span>
+    <span style="font-size:11px;color:var(--green);cursor:pointer;" onclick="showToast('All marked as read');document.getElementById('notifPip').style.display='none';">Mark all read</span>
+  </div>
+  <div class="notif-item" onclick="navTo('execution');toggleNotif()">
+    <div class="ni-dot" style="background:var(--red);"></div>
+    <div class="ni-body">
+      <div class="ni-text"><strong>Test failed:</strong> Apply valid coupon — coupon.spec.ts:23</div>
+      <div class="ni-time">3 min ago · Run #1847</div>
+    </div>
+  </div>
+  <div class="notif-item" onclick="navTo('cicd');toggleNotif()">
+    <div class="ni-dot" style="background:var(--yellow);"></div>
+    <div class="ni-body">
+      <div class="ni-text"><strong>Azure DevOps</strong> service connection needs re-authentication</div>
+      <div class="ni-time">2 hrs ago · CI/CD</div>
+    </div>
+  </div>
+  <div class="notif-item" onclick="navTo('collab');toggleNotif()">
+    <div class="ni-dot" style="background:var(--blue);"></div>
+    <div class="ni-body">
+      <div class="ni-text"><strong>Maria Santos</strong> left an annotation on checkout/coupon.spec.ts</div>
+      <div class="ni-time">1 hr ago · Annotations</div>
+    </div>
+  </div>
+  <div class="notif-item" onclick="navTo('collab');toggleNotif()">
+    <div class="ni-dot" style="background:var(--green);"></div>
+    <div class="ni-body">
+      <div class="ni-text"><strong>James Park</strong> accepted your team invite</div>
+      <div class="ni-time">Yesterday · Team</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PROJECT DROPDOWN ─────────────────────────────────────────────────────── -->
+<div class="proj-dropdown" id="projDropdown">
+  ${[
+    {name:'E-Commerce Suite', icon:'🛒', color:'var(--green)', active:true},
+    {name:'Authentication', icon:'🔐', color:'var(--blue)', active:false},
+    {name:'API Testing', icon:'⚡', color:'var(--purple)', active:false},
+    {name:'Mobile Web', icon:'📱', color:'var(--orange)', active:false},
+  ].map(p=>`<div class="pd-item ${p.active?'active':''}" onclick="switchProject('${p.name}','${p.icon}')">
+    <span style="font-size:14px;">${p.icon}</span>
+    <span style="flex:1;">${p.name}</span>
+    ${p.active?'<span style="color:var(--green);font-size:10px;">●</span>':''}
+  </div>`).join('')}
+  <div style="border-top:1px solid var(--border);padding:6px 0;">
+    <div class="pd-item" onclick="showToast('+ New project created');toggleProjDropdown()">
+      <span>＋</span><span>New Project</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── MODULE REGISTRY ───────────────────────────────────────────────────────────
+const MODULES = {
+  home:      { label:'Home',           icon:'🏠', title:'Home', file:null },
+  import:    { label:'Katalon Import', icon:'📥', title:'Katalon Import Engine', file:'playwright-arc-import.html' },
+  designer:  { label:'Test Designer',  icon:'🎨', title:'No-Code Test Designer',  file:'playwright-arc-designer.html' },
+  code:      { label:'Code Mode',      icon:'⌨',  title:'Code Mode Editor',       file:'playwright-arc-code.html' },
+  api:       { label:'API Testing',    icon:'⚡', title:'API Testing',            file:'playwright-arc-api.html' },
+  execution: { label:'Run Dashboard',  icon:'▶',  title:'Execution Dashboard',    file:'playwright-arc-execution.html' },
+  envdata:   { label:'Environments',   icon:'🌍', title:'Environment & Data Management', file:'playwright-arc-envdata.html' },
+  cicd:      { label:'CI/CD',          icon:'⚙',  title:'CI/CD Integration Hub',  file:'playwright-arc-cicd.html' },
+  collab:    { label:'Collaboration',  icon:'👥', title:'Collaboration & RBAC',   file:'playwright-arc-collab.html' },
+};
+
+const SPOTLIGHT_ITEMS = [
+  { section:'Modules', items:[
+    { icon:'🏠', label:'Home — Dashboard', action:()=>navTo('home') },
+    { icon:'📥', label:'Katalon Import', action:()=>navTo('import') },
+    { icon:'🎨', label:'Test Designer', action:()=>navTo('designer') },
+    { icon:'⌨', label:'Code Mode', action:()=>navTo('code') },
+    { icon:'⚡', label:'API Testing', action:()=>navTo('api') },
+    { icon:'▶', label:'Execution Dashboard', action:()=>navTo('execution') },
+    { icon:'🌍', label:'Environments & Data', action:()=>navTo('envdata') },
+    { icon:'⚙', label:'CI/CD Integration', action:()=>navTo('cicd') },
+    { icon:'👥', label:'Collaboration & RBAC', action:()=>navTo('collab') },
+  ]},
+  { section:'Quick Actions', items:[
+    { icon:'▶', label:'Run all tests', action:()=>triggerRun() },
+    { icon:'🌍', label:'Switch to Staging', action:()=>setEnv('Staging') },
+    { icon:'🌍', label:'Switch to Production', action:()=>setEnv('Production') },
+    { icon:'⌘', label:'Invite team member', action:()=>{ navTo('collab'); showToast('Opening invite dialog…'); }},
+    { icon:'📋', label:'View run history', action:()=>navTo('cicd') },
+  ]},
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let activeModule = 'home';
+let sidebarCollapsed = false;
+let spSelected = 0;
+let spItems = [];
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function navTo(id) {
+  if (!(id in MODULES)) return;
+
+  // Update nav
+  Object.keys(MODULES).forEach(k => {
+    document.getElementById('nav-'+k)?.classList.remove('active');
+  });
+  document.getElementById('nav-'+id)?.classList.add('active');
+  activeModule = id;
+
+  // Update breadcrumb
+  const m = MODULES[id];
+  document.getElementById('breadcrumb').innerHTML = id === 'home'
+    ? `<span class="tb-crumb-active">Home</span>`
+    : `<span class="tb-crumb">E-Commerce</span>
+       <span class="tb-crumb-sep">/</span>
+       <span class="tb-crumb-active">${m.label}</span>`;
+
+  if (id === 'home') {
+    document.getElementById('homeView').style.display = '';
+    document.getElementById('moduleWrapper').style.display = 'none';
+    closeAllPanels();
+    return;
+  }
+
+  // Load module
+  document.getElementById('homeView').style.display = 'none';
+  const wrapper = document.getElementById('moduleWrapper');
+  wrapper.style.display = 'flex';
+
+  document.getElementById('mhIcon').textContent = m.icon;
+  document.getElementById('mhTitle').textContent = m.title;
+
+  // Loading state
+  const frame = document.getElementById('moduleFrame');
+  const loading = document.getElementById('loadingScreen');
+  document.getElementById('loadingLabel').textContent = `Loading ${m.label}…`;
+  frame.classList.remove('loaded');
+  frame.style.display = 'none';
+  loading.style.display = 'flex';
+
+  // Animate loading bar
+  const bar = loading.querySelector('.loading-progress');
+  bar.style.animation = 'none';
+  bar.offsetHeight; // reflow
+  bar.style.animation = 'load-prog 0.9s ease-out forwards';
+
+  frame.src = m.file;
+  closeAllPanels();
+}
+
+function onFrameLoad() {
+  const frame = document.getElementById('moduleFrame');
+  const loading = document.getElementById('loadingScreen');
+  setTimeout(() => {
+    loading.style.display = 'none';
+    frame.style.display = 'block';
+    frame.classList.add('loaded');
+  }, 120);
+}
+
+function goHome() { navTo('home'); }
+
+// ── SIDEBAR ───────────────────────────────────────────────────────────────────
+function toggleSidebar() {
+  sidebarCollapsed = !sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed', sidebarCollapsed);
+}
+
+// ── TRIGGER RUN ───────────────────────────────────────────────────────────────
+let runInterval;
+function triggerRun() {
+  const btn = document.getElementById('runBtn');
+  const dot = document.getElementById('execStatusDot');
+  const label = document.getElementById('rsLabel');
+  const bar = document.getElementById('rsBar');
+  const passed = document.getElementById('rsPassed');
+  const failed = document.getElementById('rsFailed');
+  const dur = document.getElementById('rsDur');
+
+  btn.textContent = '⟳ Running…';
+  btn.style.opacity = '.7';
+  btn.disabled = true;
+  dot.className = 'nav-status ns-yellow';
+  label.textContent = 'Running…';
+  bar.style.width = '0%';
+  passed.textContent = '✓ 0';
+  failed.textContent = '✗ 0';
+  dur.textContent = '0s';
+  showToast('▶ Run #1848 started — 4 workers');
+
+  let p = 0, startTime = Date.now();
+  clearInterval(runInterval);
+  runInterval = setInterval(() => {
+    p = Math.min(p + Math.random() * 8, 100);
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    const passCount = Math.floor((p / 100) * 112);
+    bar.style.width = p + '%';
+    passed.textContent = '✓ ' + passCount;
+    dur.textContent = elapsed + 's';
+
+    if (p >= 100) {
+      clearInterval(runInterval);
+      btn.textContent = '▶ Run';
+      btn.style.opacity = '1';
+      btn.disabled = false;
+      dot.className = 'nav-status ns-green';
+      label.textContent = 'Last Run';
+      passed.textContent = '✓ 112';
+      failed.textContent = '✗ 0';
+      bar.style.background = 'var(--green)';
+      showToast('✓ Run complete — 112/112 passed');
+    }
+  }, 180);
+}
+
+// ── ENVIRONMENT ───────────────────────────────────────────────────────────────
+const ENV_COLORS = { 'Local Dev':'var(--green)', 'Staging':'var(--yellow)', 'Production':'var(--red)', 'CI/CD Pipeline':'var(--purple)' };
+function setEnv(name) {
+  document.getElementById('activeEnvLabel').textContent = name;
+  const dot = document.querySelector('.env-badge .env-dot');
+  dot.style.background = ENV_COLORS[name] || 'var(--green)';
+  showToast(`Environment: ${name}`);
+  closeAllPanels();
+}
+
+// ── PROJECT SWITCHER ──────────────────────────────────────────────────────────
+function toggleProjDropdown() {
+  const dd = document.getElementById('projDropdown');
+  const isOpen = dd.classList.contains('open');
+  closeAllPanels();
+  if (!isOpen) dd.classList.add('open');
+}
+
+function switchProject(name, icon) {
+  document.getElementById('projName').textContent = name;
+  document.getElementById('projBtn').querySelector('.proj-icon').textContent = icon;
+  closeAllPanels();
+  showToast(`Project: ${name}`);
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────────────────────
+function toggleNotif() {
+  const panel = document.getElementById('notifPanel');
+  const isOpen = panel.classList.contains('open');
+  closeAllPanels();
+  if (!isOpen) panel.classList.add('open');
+}
+
+// ── CLOSE ALL ─────────────────────────────────────────────────────────────────
+function closeAllPanels() {
+  document.getElementById('notifPanel').classList.remove('open');
+  document.getElementById('projDropdown').classList.remove('open');
+  document.getElementById('spotlightOverlay').classList.remove('open');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#notifPanel') && !e.target.closest('#notifBtn'))
+    document.getElementById('notifPanel').classList.remove('open');
+  if (!e.target.closest('#projDropdown') && !e.target.closest('#projBtn') && !e.target.closest('#envBadge'))
+    document.getElementById('projDropdown').classList.remove('open');
+});
+
+// ── SPOTLIGHT ─────────────────────────────────────────────────────────────────
+function openSpotlight() {
+  document.getElementById('spotlightOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('spInput').focus(), 50);
+  filterSpotlight('');
+}
+
+function closeSpotlight() {
+  document.getElementById('spotlightOverlay').classList.remove('open');
+  document.getElementById('spInput').value = '';
+}
+
+function filterSpotlight(val) {
+  spSelected = 0;
+  spItems = [];
+  const q = val.toLowerCase();
+  const results = document.getElementById('spResults');
+
+  const sections = SPOTLIGHT_ITEMS.map(sec => {
+    const filtered = sec.items.filter(i => !q || i.label.toLowerCase().includes(q));
+    return { section: sec.section, items: filtered };
+  }).filter(s => s.items.length > 0);
+
+  if (!sections.length) {
+    results.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px;">No results</div>';
+    return;
+  }
+
+  sections.forEach(sec => sec.items.forEach(i => spItems.push(i)));
+
+  results.innerHTML = sections.map(sec => `
+    <div class="sp-section">
+      <div class="sp-sec-label">${sec.section}</div>
+      ${sec.items.map((item, idx) => {
+        const globalIdx = spItems.indexOf(item);
+        return `<div class="sp-item ${globalIdx === 0 ? 'selected' : ''}" data-idx="${globalIdx}" onclick="runSpotlightItem(${globalIdx})">
+          <div class="sp-item-icon" style="background:var(--bg4);">${item.icon}</div>
+          <span class="sp-item-label">${item.label}</span>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function runSpotlightItem(idx) {
+  if (spItems[idx]) {
+    spItems[idx].action();
+    closeSpotlight();
+  }
+}
+
+function spKey(e) {
+  const items = document.querySelectorAll('.sp-item');
+  if (e.key === 'Escape') { closeSpotlight(); return; }
+  if (e.key === 'ArrowDown') { spSelected = Math.min(spSelected+1, spItems.length-1); highlightSp(items); }
+  if (e.key === 'ArrowUp') { spSelected = Math.max(spSelected-1, 0); highlightSp(items); }
+  if (e.key === 'Enter' && spItems[spSelected]) { runSpotlightItem(spSelected); }
+}
+
+function highlightSp(items) {
+  items.forEach((el, i) => el.classList.toggle('selected', i === spSelected));
+  items[spSelected]?.scrollIntoView({ block:'nearest' });
+}
+
+// ── KEYBOARD SHORTCUTS ────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openSpotlight(); }
+  if (e.key === 'Escape') closeAllPanels();
+  if ((e.metaKey || e.ctrlKey) && e.key === '1') navTo('home');
+  if ((e.metaKey || e.ctrlKey) && e.key === '2') navTo('designer');
+  if ((e.metaKey || e.ctrlKey) && e.key === '3') navTo('execution');
+});
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let toastT;
+function showToast(msg) {
+  clearTimeout(toastT);
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.opacity = '1';
+  toastT = setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t?.remove(), 300); }, 2500);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+// Make module-wrapper a flex column so iframe fills it
+document.getElementById('moduleWrapper').style.cssText += ';display:none;flex-direction:column;overflow:hidden;flex:1;';
+</script>
+</body>
+</html>

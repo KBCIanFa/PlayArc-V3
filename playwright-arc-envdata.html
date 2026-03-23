@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlaywrightArc — Environment & Data</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #090b0e;
+  --bg2:    #0e1117;
+  --bg3:    #141820;
+  --bg4:    #1a2030;
+  --bg5:    #202840;
+  --border: #1c2438;
+  --border2:#263044;
+  --text:   #d4dff0;
+  --text2:  #6e82a0;
+  --text3:  #384a62;
+  --green:  #00e5a0;
+  --green2: #00b87d;
+  --gdim:   rgba(0,229,160,0.08);
+  --gglow:  rgba(0,229,160,0.14);
+  --blue:   #4da6ff;
+  --bdim:   rgba(77,166,255,0.09);
+  --orange: #ff9d4a;
+  --odim:   rgba(255,157,74,0.09);
+  --red:    #ff3d5a;
+  --rdim:   rgba(255,61,90,0.09);
+  --yellow: #ffc947;
+  --ydim:   rgba(255,201,71,0.09);
+  --purple: #b06aff;
+  --pdim:   rgba(176,106,255,0.09);
+  --cyan:   #22d3ee;
+  --cdim:   rgba(34,211,238,0.09);
+  --r:5px; --r2:9px; --r3:13px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{height:48px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--green);letter-spacing:-.5px;display:flex;align-items:center;gap:7px;}
+.logo-icon{width:22px;height:22px;background:var(--green);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:900;}
+.sep{width:1px;height:18px;background:var(--border2);}
+.page-label{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text2);}
+.page-label strong{color:var(--text);}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+
+.btn{display:flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r);border:none;cursor:pointer;font-family:'Instrument Sans',sans-serif;font-size:12px;font-weight:500;transition:all .14s;white-space:nowrap;}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid transparent;}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-outline:hover{border-color:var(--border2);color:var(--text);}
+.btn-green{background:var(--green);color:#000;font-weight:700;}
+.btn-green:hover{background:var(--green2);}
+.btn-red{background:var(--rdim);color:var(--red);border:1px solid rgba(255,61,90,.2);}
+.btn-red:hover{background:rgba(255,61,90,.16);}
+.btn-blue{background:var(--bdim);color:var(--blue);border:1px solid rgba(77,166,255,.2);}
+.btn-blue:hover{background:rgba(77,166,255,.16);}
+.btn-sm{padding:4px 10px;font-size:11px;}
+
+/* LAYOUT */
+.layout{flex:1;display:flex;overflow:hidden;}
+
+/* LEFT NAV */
+.left-nav{width:210px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.nav-section{padding:12px 0 4px;}
+.nav-label{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;padding:0 14px 6px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;color:var(--text2);font-size:12px;font-weight:500;border-left:2px solid transparent;transition:all .12s;}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:var(--gdim);color:var(--green);border-left-color:var(--green);}
+.nav-item .icon{font-size:14px;width:18px;text-align:center;}
+.nav-badge{margin-left:auto;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;background:var(--bg4);color:var(--text3);}
+.nav-badge.active-env{background:var(--gdim);color:var(--green);}
+
+/* ACTIVE ENV STRIP */
+.active-env-strip{margin:10px 10px 0;padding:10px 12px;background:var(--bg3);border:1px solid rgba(0,229,160,.15);border-radius:var(--r2);}
+.aes-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.aes-env{display:flex;align-items:center;gap:6px;}
+.env-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.env-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);}
+.env-switch{font-size:11px;color:var(--green);cursor:pointer;margin-left:auto;}
+.env-switch:hover{text-decoration:underline;}
+
+/* MAIN CONTENT */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;}
+.view{display:none;padding:28px 32px;}
+.view.active{display:block;}
+
+/* SECTION */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.sec-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);}
+.sec-sub{font-size:12px;color:var(--text3);margin-top:3px;}
+
+/* ENV CARDS GRID */
+.env-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:28px;}
+.env-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);padding:18px;cursor:pointer;transition:all .14s;position:relative;overflow:hidden;}
+.env-card:hover{border-color:var(--border2);}
+.env-card.active-card{border-color:var(--green);box-shadow:0 0 0 1px var(--gglow),0 0 20px var(--gglow);}
+.env-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.env-card.local::before{background:var(--green);}
+.env-card.staging::before{background:var(--yellow);}
+.env-card.prod::before{background:var(--red);}
+.env-card.custom::before{background:var(--purple);}
+.env-card-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.env-card-icon{width:34px;height:34px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.env-card-meta{flex:1;}
+.env-card-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
+.env-card-url{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.env-active-pill{font-size:10px;font-weight:700;background:var(--gdim);color:var(--green);padding:2px 8px;border-radius:10px;border:1px solid rgba(0,229,160,.2);}
+.env-card-vars{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;}
+.var-chip{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:4px;}
+.var-chip.secret{color:var(--purple);}
+.env-card-footer{display:flex;align-items:center;gap:6px;}
+.env-stat{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:3px;}
+
+/* VARIABLE TABLE */
+.var-table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:20px;}
+.var-table-hdr{display:grid;padding:9px 14px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;}
+.col-4{grid-template-columns:24px 1.5fr 1.5fr 100px 80px;}
+.col-4b{grid-template-columns:24px 1.5fr 1fr 1fr 80px;}
+.var-row{display:grid;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border);transition:background .1s;}
+.var-row:last-child{border-bottom:none;}
+.var-row:hover{background:var(--bg3);}
+.var-check{accent-color:var(--green);width:14px;height:14px;cursor:pointer;}
+.var-input{background:transparent;border:1px solid transparent;border-radius:4px;color:var(--text);padding:4px 8px;font-family:'DM Mono',monospace;font-size:12px;outline:none;width:100%;transition:border-color .12s;}
+.var-input:focus{border-color:var(--border2);background:var(--bg3);}
+.var-input::placeholder{color:var(--text3);}
+.var-input.secret-val{color:var(--purple);font-style:italic;}
+.secret-toggle{background:transparent;border:none;color:var(--text3);cursor:pointer;padding:3px 6px;font-size:12px;border-radius:3px;transition:all .1s;}
+.secret-toggle:hover{color:var(--text);}
+.type-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;width:fit-content;}
+.type-string{background:var(--gdim);color:var(--green);}
+.type-secret{background:var(--pdim);color:var(--purple);}
+.type-url{background:var(--bdim);color:var(--blue);}
+.type-number{background:var(--odim);color:var(--orange);}
+.type-bool{background:var(--ydim);color:var(--yellow);}
+.del-btn{background:transparent;border:none;color:var(--text3);cursor:pointer;padding:4px 6px;font-size:14px;border-radius:3px;transition:all .1s;}
+.del-btn:hover{background:var(--rdim);color:var(--red);}
+
+/* DATA SOURCES */
+.ds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:24px;}
+.ds-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;cursor:pointer;transition:all .14s;}
+.ds-card:hover{border-color:var(--border2);}
+.ds-card-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.ds-icon{width:32px;height:32px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.ds-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);}
+.ds-type{font-size:11px;color:var(--text3);margin-top:1px;}
+.ds-stats{display:flex;gap:10px;font-size:11px;color:var(--text3);}
+.ds-stat{display:flex;align-items:center;gap:3px;}
+.ds-preview{margin-top:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+
+/* DATA TABLE PREVIEW */
+.dt-hdr{display:flex;background:var(--bg4);border-bottom:1px solid var(--border);}
+.dt-cell{font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--text3);padding:5px 8px;border-right:1px solid var(--border);flex:1;text-transform:uppercase;letter-spacing:.4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dt-cell:last-child{border-right:none;}
+.dt-row{display:flex;border-bottom:1px solid var(--border);}
+.dt-row:last-child{border-bottom:none;}
+.dt-row:hover{background:var(--bg5);}
+.dt-val{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);padding:4px 8px;border-right:1px solid var(--border);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dt-val:last-child{border-right:none;}
+.dt-val.masked{color:var(--purple);font-style:italic;}
+
+/* BINDING */
+.binding-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);margin-bottom:6px;}
+.binding-var{font-family:'DM Mono',monospace;font-size:12px;color:var(--purple);min-width:120px;}
+.binding-arrow{color:var(--text3);font-size:14px;}
+.binding-col{font-family:'DM Mono',monospace;font-size:12px;color:var(--green);flex:1;}
+.binding-type{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--bg4);color:var(--text3);}
+
+/* DIFF COMPARE TABLE */
+.compare-grid{display:grid;grid-template-columns:180px repeat(3,1fr);gap:0;border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:20px;}
+.cg-hdr{padding:9px 12px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;background:var(--bg3);border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
+.cg-hdr:last-child{border-right:none;}
+.cg-hdr.env-local{color:var(--green);}
+.cg-hdr.env-staging{color:var(--yellow);}
+.cg-hdr.env-prod{color:var(--red);}
+.cg-row{display:contents;}
+.cg-key{padding:8px 12px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);background:var(--bg2);border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
+.cg-val{padding:8px 12px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);background:var(--bg2);border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
+.cg-val:last-child{border-right:none;}
+.cg-val.differs{color:var(--yellow);background:rgba(255,201,71,.05);}
+.cg-val.secret{color:var(--purple);font-style:italic;}
+.cg-val.missing{color:var(--red);background:rgba(255,61,90,.05);}
+
+/* SECRETS */
+.secret-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:6px;transition:all .12s;}
+.secret-item:hover{border-color:var(--border2);}
+.secret-icon{width:28px;height:28px;border-radius:var(--r);background:var(--pdim);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.secret-name{font-family:'DM Mono',monospace;font-size:12px;color:var(--purple);font-weight:500;}
+.secret-source{font-size:11px;color:var(--text3);margin-top:1px;}
+.secret-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);margin-left:auto;}
+.secret-actions{display:flex;gap:4px;}
+.provider-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid;}
+.pb-vault{background:rgba(255,209,71,.08);color:var(--yellow);border-color:rgba(255,209,71,.2);}
+.pb-aws{background:var(--odim);color:var(--orange);border-color:rgba(255,157,74,.2);}
+.pb-local{background:var(--gdim);color:var(--green);border-color:rgba(0,229,160,.2);}
+
+/* AI BAR */
+.ai-bar{padding:10px 16px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.ai-inner{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:7px 12px;transition:border-color .15s;}
+.ai-inner:focus-within{border-color:var(--green);box-shadow:0 0 0 3px var(--gglow);}
+.ai-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;}
+.ai-input::placeholder{color:var(--text3);}
+.ai-send{background:var(--green);color:#000;border:none;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Instrument Sans',sans-serif;transition:all .14s;}
+.ai-send:hover{background:var(--green2);}
+.ai-send:disabled{opacity:.4;cursor:not-allowed;}
+.ai-spinner{width:12px;height:12px;border-radius:50%;border:2px solid rgba(0,229,160,.2);border-top-color:var(--green);animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ai-result{background:var(--bg3);border:1px solid rgba(0,229,160,.15);border-radius:var(--r2);padding:12px 14px;margin-top:8px;font-size:12px;color:var(--text2);line-height:1.7;white-space:pre-wrap;display:none;}
+
+/* SCROLLBARS */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--border2);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r3);padding:24px;width:480px;box-shadow:0 16px 48px rgba(0,0,0,.7);}
+.modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);margin-bottom:16px;}
+.modal-field{margin-bottom:12px;}
+.modal-label{font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;}
+.modal-input,.modal-select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:8px 10px;font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .14s;}
+.modal-input:focus,.modal-select:focus{border-color:var(--green);}
+.modal-input::placeholder{color:var(--text3);}
+.modal-select option{background:var(--bg2);}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+
+/* TABS inside view */
+.view-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.vtab{padding:8px 14px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;font-family:'Syne',sans-serif;letter-spacing:.3px;text-transform:uppercase;}
+.vtab.active{color:var(--green);border-bottom-color:var(--green);}
+.vtab:hover:not(.active){color:var(--text2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:14px;right:14px;z-index:500;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:9px 14px;font-size:12px;color:var(--text);box-shadow:0 8px 30px rgba(0,0,0,.6);animation:ti .2s ease-out;}
+@keyframes ti{from{opacity:0;transform:translateY(6px);}to{opacity:1;}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo"><div class="logo-icon">▶</div>PlaywrightArc</div>
+  <div class="sep"></div>
+  <div class="page-label">Environment & <strong>Data Management</strong></div>
+  <div class="topbar-right">
+    <button class="btn btn-outline" onclick="showModal('importModal')">↑ Import .env</button>
+    <button class="btn btn-outline" onclick="showToast('Syncing with vault…')">⟳ Sync Secrets</button>
+    <button class="btn btn-green" onclick="showModal('newEnvModal')">+ New Environment</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT NAV -->
+  <div class="left-nav">
+    <div style="padding:14px 10px 6px;">
+      <div class="active-env-strip">
+        <div class="aes-label">Active Environment</div>
+        <div class="aes-env">
+          <div class="env-dot" style="background:var(--green);"></div>
+          <span class="env-name" id="activeEnvName">Local Dev</span>
+          <span class="env-switch" onclick="navTo('environments')">Switch →</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Environments</div>
+      <div class="nav-item active" id="nav-environments" onclick="navTo('environments')">
+        <span class="icon">🌍</span> Environments
+        <span class="nav-badge active-env">4</span>
+      </div>
+      <div class="nav-item" id="nav-variables" onclick="navTo('variables')">
+        <span class="icon">$</span> Variables
+        <span class="nav-badge">41</span>
+      </div>
+      <div class="nav-item" id="nav-secrets" onclick="navTo('secrets')">
+        <span class="icon">🔒</span> Secrets
+        <span class="nav-badge">12</span>
+      </div>
+      <div class="nav-item" id="nav-compare" onclick="navTo('compare')">
+        <span class="icon">⇌</span> Compare
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Data Sources</div>
+      <div class="nav-item" id="nav-datasets" onclick="navTo('datasets')">
+        <span class="icon">📊</span> Datasets
+        <span class="nav-badge">5</span>
+      </div>
+      <div class="nav-item" id="nav-bindings" onclick="navTo('bindings')">
+        <span class="icon">⇒</span> Bindings
+        <span class="nav-badge">8</span>
+      </div>
+      <div class="nav-item" id="nav-datagen" onclick="navTo('datagen')">
+        <span class="icon">✦</span> AI Data Gen
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="mainContent">
+
+    <!-- ══ ENVIRONMENTS ══ -->
+    <div class="view active" id="view-environments">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Environments</div><div class="sec-sub">Manage profiles for each deployment target. Switch active environment per test run.</div></div>
+        <button class="btn btn-green" onclick="showModal('newEnvModal')">+ New Environment</button>
+      </div>
+
+      <div class="env-grid" id="envGrid"></div>
+    </div>
+
+    <!-- ══ VARIABLES ══ -->
+    <div class="view" id="view-variables">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Variables</div><div class="sec-sub">Edit variables for the active environment. Secrets are stored encrypted.</div></div>
+        <div style="display:flex;gap:8px;">
+          <select style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text2);padding:6px 10px;font-size:12px;outline:none;cursor:pointer;" id="varEnvSelect" onchange="onVarEnvChange()">
+            <option>Local Dev</option><option>Staging</option><option>Production</option><option>CI/CD Pipeline</option>
+          </select>
+          <button class="btn btn-outline" onclick="addVarRow()">+ Add Variable</button>
+          <button class="btn btn-green btn-sm" onclick="showToast('✓ Variables saved')">Save</button>
+        </div>
+      </div>
+
+      <div class="view-tabs">
+        <div class="vtab active" onclick="switchVarTab(this,'all')">All</div>
+        <div class="vtab" onclick="switchVarTab(this,'urls')">URLs</div>
+        <div class="vtab" onclick="switchVarTab(this,'auth')">Auth</div>
+        <div class="vtab" onclick="switchVarTab(this,'secrets')">Secrets</div>
+        <div class="vtab" onclick="switchVarTab(this,'custom')">Custom</div>
+      </div>
+
+      <div class="var-table-wrap">
+        <div class="var-table-hdr col-4b">
+          <span></span><span>Key</span><span>Value</span><span>Type</span><span>Actions</span>
+        </div>
+        <div id="varTableBody"></div>
+      </div>
+
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:16px;">
+        <div style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Usage Preview</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);line-height:1.8;">
+          <span style="color:var(--text3);">// In test code, access as:</span><br>
+          <span style="color:var(--blue);">process</span>.<span style="color:var(--green);">env</span>.<span style="color:var(--yellow);">BASE_URL</span>  → <span style="color:var(--orange);">"http://localhost:3000"</span><br>
+          <span style="color:var(--text3);">// In no-code designer, use:</span><br>
+          <span style="color:var(--purple);">{{BASE_URL}}</span> → resolved at runtime from active profile
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SECRETS ══ -->
+    <div class="view" id="view-secrets">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Secret Management</div><div class="sec-sub">Secrets are encrypted at rest. Never stored in plaintext or source control.</div></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="showModal('vaultModal')">⚙ Configure Vault</button>
+          <button class="btn btn-green" onclick="showModal('newSecretModal')">+ New Secret</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+        <div class="provider-badge pb-vault">🔐 HashiCorp Vault <span style="opacity:.6;margin-left:4px;">Connected</span></div>
+        <div class="provider-badge pb-aws">☁ AWS Secrets Manager <span style="opacity:.6;margin-left:4px;">Connected</span></div>
+        <div class="provider-badge pb-local">🔒 Local Encrypted Store <span style="opacity:.6;margin-left:4px;">12 secrets</span></div>
+      </div>
+
+      <div id="secretsList"></div>
+    </div>
+
+    <!-- ══ COMPARE ══ -->
+    <div class="view" id="view-compare">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Environment Comparison</div><div class="sec-sub">Side-by-side diff of variable values across environments</div></div>
+        <button class="btn btn-outline" onclick="showToast('Exported comparison CSV')">↓ Export CSV</button>
+      </div>
+      <div class="compare-grid" id="compareGrid"></div>
+    </div>
+
+    <!-- ══ DATASETS ══ -->
+    <div class="view" id="view-datasets">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Datasets</div><div class="sec-sub">Data sources for data-driven test execution. Bind columns to test variables.</div></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="showModal('uploadDataModal')">↑ Upload File</button>
+          <button class="btn btn-green" onclick="showToast('+ Inline dataset created')">+ New Dataset</button>
+        </div>
+      </div>
+      <div class="ds-grid" id="dsGrid"></div>
+    </div>
+
+    <!-- ══ BINDINGS ══ -->
+    <div class="view" id="view-bindings">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Variable Bindings</div><div class="sec-sub">Map dataset columns to test variables for data-driven execution</div></div>
+        <button class="btn btn-outline" onclick="addBinding()">+ Add Binding</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Active Dataset: checkout-users.csv</div>
+          <div id="bindingsList"></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Execution Preview — Row 1 of 8</div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;">
+            <div id="execPreview"></div>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;">
+            <button class="btn btn-outline btn-sm" onclick="showToast('← Previous row')">← Prev</button>
+            <button class="btn btn-outline btn-sm" onclick="showToast('→ Next row')">Next →</button>
+            <button class="btn btn-green btn-sm" style="margin-left:auto;" onclick="showToast('▶ Running 8 iterations…')">▶ Run All Rows</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ AI DATA GEN ══ -->
+    <div class="view" id="view-datagen">
+      <div class="sec-hdr">
+        <div><div class="sec-title">AI Data Generator</div><div class="sec-sub">Generate realistic test datasets using natural language</div></div>
+        <button class="btn btn-outline" onclick="showToast('Saved generated dataset')">Save Dataset</button>
+      </div>
+
+      <div style="background:var(--bg2);border:1px solid rgba(0,229,160,.15);border-radius:var(--r3);padding:20px;margin-bottom:20px;">
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--green);margin-bottom:12px;">✦ Describe your dataset</div>
+        <div style="display:flex;gap:10px;margin-bottom:10px;">
+          <input id="datagenPrompt" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:9px 12px;font-family:'Instrument Sans',sans-serif;font-size:13px;outline:none;" placeholder="e.g. 10 realistic checkout users with valid emails, addresses, and credit card formats…" onkeydown="if(event.key==='Enter')generateData()">
+          <button class="btn btn-green" id="genBtn" onclick="generateData()">Generate ✦</button>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:11px;color:var(--text3);">Quick:</span>
+          <button class="btn btn-ghost btn-sm" onclick="setPrompt('10 checkout users with email, password, first name, last name, address, city, zip, country')">Checkout Users</button>
+          <button class="btn btn-ghost btn-sm" onclick="setPrompt('5 product SKUs with name, price, category, inventory count, and description')">Product Catalog</button>
+          <button class="btn btn-ghost btn-sm" onclick="setPrompt('8 API credentials with client_id, client_secret, scope, and environment')">API Credentials</button>
+          <button class="btn btn-ghost btn-sm" onclick="setPrompt('invalid/edge case email addresses for login validation testing')">Edge Case Emails</button>
+        </div>
+      </div>
+
+      <div id="genThinking" style="display:none;text-align:center;padding:24px;color:var(--text3);">
+        <div class="ai-spinner" style="width:20px;height:20px;border-width:2.5px;margin:0 auto 10px;display:block;"></div>
+        <div style="font-size:12px;">Generating dataset…</div>
+      </div>
+
+      <div id="genResult" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;" id="genResultLabel">Generated Dataset</div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-outline btn-sm" onclick="generateData()">↻ Regenerate</button>
+            <button class="btn btn-green btn-sm" onclick="showToast('✓ Dataset saved')">Save Dataset</button>
+          </div>
+        </div>
+        <div class="ds-preview" style="border-radius:var(--r2);border:1px solid var(--border);">
+          <div class="dt-hdr" id="genTableHdr"></div>
+          <div id="genTableBody"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<!-- ══ MODALS ══ -->
+<div class="modal-overlay" id="newEnvModal">
+  <div class="modal">
+    <div class="modal-title">New Environment</div>
+    <div class="modal-field"><div class="modal-label">Name</div><input class="modal-input" placeholder="e.g. QA Environment"></div>
+    <div class="modal-field"><div class="modal-label">Base URL</div><input class="modal-input" placeholder="https://qa.api.example.com"></div>
+    <div class="modal-field"><div class="modal-label">Clone from</div><select class="modal-select"><option>— Start fresh —</option><option>Local Dev</option><option>Staging</option></select></div>
+    <div class="modal-field"><div class="modal-label">Color Tag</div>
+      <div style="display:flex;gap:8px;">
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--green);cursor:pointer;border:2px solid transparent;" onclick="this.style.border='2px solid white'"></div>
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--yellow);cursor:pointer;"></div>
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--red);cursor:pointer;"></div>
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--purple);cursor:pointer;"></div>
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--blue);cursor:pointer;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('newEnvModal')">Cancel</button>
+      <button class="btn btn-green" onclick="createEnv()">Create Environment</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="newSecretModal">
+  <div class="modal">
+    <div class="modal-title">Add Secret</div>
+    <div class="modal-field"><div class="modal-label">Secret Key</div><input class="modal-input" placeholder="e.g. AUTH_TOKEN"></div>
+    <div class="modal-field"><div class="modal-label">Value</div><input class="modal-input" type="password" placeholder="Encrypted at rest"></div>
+    <div class="modal-field"><div class="modal-label">Store in</div><select class="modal-select"><option>Local Encrypted Store</option><option>HashiCorp Vault</option><option>AWS Secrets Manager</option></select></div>
+    <div class="modal-field"><div class="modal-label">Environments</div><div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);"><input type="checkbox" checked style="accent-color:var(--green);">Local Dev</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);"><input type="checkbox" checked style="accent-color:var(--green);">Staging</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);"><input type="checkbox" style="accent-color:var(--green);">Production</label>
+    </div></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('newSecretModal')">Cancel</button>
+      <button class="btn btn-green" onclick="hideModal('newSecretModal');showToast('🔒 Secret encrypted and stored')">Add Secret</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-title">Import .env File</div>
+    <div style="border:2px dashed var(--border2);border-radius:var(--r2);padding:28px;text-align:center;cursor:pointer;margin-bottom:14px;color:var(--text3);" onclick="showToast('File browser opened')">
+      <div style="font-size:28px;margin-bottom:8px;">📄</div>
+      <div style="font-size:12px;">Drop .env file or click to browse</div>
+    </div>
+    <div class="modal-field"><div class="modal-label">Import into</div><select class="modal-select"><option>Local Dev</option><option>Staging</option><option>Production</option></select></div>
+    <div class="modal-field"><div class="modal-label">Conflict strategy</div><select class="modal-select"><option>Skip existing keys</option><option>Overwrite existing</option><option>Ask for each conflict</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('importModal')">Cancel</button>
+      <button class="btn btn-green" onclick="hideModal('importModal');showToast('✓ .env imported — 12 variables added')">Import</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="uploadDataModal">
+  <div class="modal">
+    <div class="modal-title">Upload Dataset</div>
+    <div style="border:2px dashed var(--border2);border-radius:var(--r2);padding:28px;text-align:center;cursor:pointer;margin-bottom:14px;color:var(--text3);" onclick="showToast('File browser opened')">
+      <div style="font-size:28px;margin-bottom:8px;">📊</div>
+      <div style="font-size:12px;">CSV, JSON, or Excel (.xlsx)</div>
+    </div>
+    <div class="modal-field"><div class="modal-label">Dataset name</div><input class="modal-input" placeholder="e.g. checkout-users"></div>
+    <div class="modal-field"><div class="modal-label">Row delimiter</div><select class="modal-select"><option>Comma (,)</option><option>Tab</option><option>Semicolon (;)</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('uploadDataModal')">Cancel</button>
+      <button class="btn btn-green" onclick="hideModal('uploadDataModal');showToast('✓ Dataset uploaded — 8 rows detected')">Upload</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="vaultModal">
+  <div class="modal">
+    <div class="modal-title">Configure Secret Provider</div>
+    <div class="modal-field"><div class="modal-label">Provider</div><select class="modal-select"><option>HashiCorp Vault</option><option>AWS Secrets Manager</option><option>Azure Key Vault</option><option>GCP Secret Manager</option></select></div>
+    <div class="modal-field"><div class="modal-label">Vault URL</div><input class="modal-input" value="https://vault.internal.example.com" placeholder="https://vault.example.com"></div>
+    <div class="modal-field"><div class="modal-label">Token / Role</div><input class="modal-input" type="password" placeholder="hvs.xxxxxxxxxx"></div>
+    <div class="modal-field"><div class="modal-label">Secret path prefix</div><input class="modal-input" value="secret/playwrightarc/" placeholder="secret/your-project/"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('vaultModal')">Cancel</button>
+      <button class="btn btn-outline" onclick="showToast('🔌 Testing connection…')">Test Connection</button>
+      <button class="btn btn-green" onclick="hideModal('vaultModal');showToast('✓ Vault configured')">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const ENVS = [
+  { id:'local', name:'Local Dev', cls:'local', icon:'💻', color:'var(--green)',
+    url:'http://localhost:3000', active:true,
+    vars:['BASE_URL','API_KEY','TEST_USER','TEST_PASS','DB_URL'],
+    secrets:3, tests:112, lastRun:'2 min ago' },
+  { id:'staging', name:'Staging', cls:'staging', icon:'🧪', color:'var(--yellow)',
+    url:'https://staging.myshop.com', active:false,
+    vars:['BASE_URL','API_KEY','TEST_USER','STRIPE_KEY'],
+    secrets:5, tests:112, lastRun:'1 hr ago' },
+  { id:'prod', name:'Production', cls:'prod', icon:'🚀', color:'var(--red)',
+    url:'https://myshop.com', active:false,
+    vars:['BASE_URL','API_KEY','ANALYTICS_ID'],
+    secrets:6, tests:0, lastRun:'Never (read-only)' },
+  { id:'ci', name:'CI/CD Pipeline', cls:'custom', icon:'⚙', color:'var(--purple)',
+    url:'https://ci.internal.myshop.com', active:false,
+    vars:['BASE_URL','CI_TOKEN','HEADLESS','WORKERS'],
+    secrets:4, tests:112, lastRun:'On every PR' },
+];
+
+const VARIABLES = [
+  { key:'BASE_URL', value:'http://localhost:3000', type:'url', enabled:true },
+  { key:'API_BASE', value:'http://localhost:3000/api', type:'url', enabled:true },
+  { key:'TEST_USER', value:'qa@example.com', type:'string', enabled:true },
+  { key:'TEST_PASS', value:'••••••••', type:'secret', enabled:true },
+  { key:'AUTH_TOKEN', value:'••••••••', type:'secret', enabled:true },
+  { key:'STRIPE_TEST_KEY', value:'••••••••', type:'secret', enabled:true },
+  { key:'HEADLESS', value:'false', type:'bool', enabled:true },
+  { key:'TIMEOUT', value:'30000', type:'number', enabled:true },
+  { key:'WORKERS', value:'4', type:'number', enabled:true },
+  { key:'SCREENSHOT_PATH', value:'./screenshots', type:'string', enabled:true },
+  { key:'CATEGORY', value:'footwear', type:'string', enabled:true },
+  { key:'RETRY_COUNT', value:'2', type:'number', enabled:false },
+];
+
+const SECRETS_LIST = [
+  { name:'AUTH_TOKEN', source:'Local Encrypted', provider:'local', val:'eyJhbGci…', envs:['Local Dev','Staging'] },
+  { name:'STRIPE_TEST_KEY', source:'HashiCorp Vault → secret/playwrightarc/stripe', provider:'vault', val:'sk_test_…', envs:['Local Dev','Staging'] },
+  { name:'STRIPE_LIVE_KEY', source:'HashiCorp Vault → secret/playwrightarc/stripe-live', provider:'vault', val:'sk_live_…', envs:['Production'] },
+  { name:'TEST_PASS', source:'Local Encrypted', provider:'local', val:'••••••••', envs:['Local Dev','Staging','CI/CD'] },
+  { name:'DB_URL', source:'AWS Secrets → arn:aws:…:db-url', provider:'aws', val:'postgres://…', envs:['Staging','Production'] },
+  { name:'CI_TOKEN', source:'Local Encrypted', provider:'local', val:'ghp_…', envs:['CI/CD Pipeline'] },
+];
+
+const COMPARE_VARS = [
+  { key:'BASE_URL', local:'http://localhost:3000', staging:'https://staging.myshop.com', prod:'https://myshop.com' },
+  { key:'API_BASE', local:'http://localhost:3000/api', staging:'https://staging.myshop.com/api', prod:'https://api.myshop.com' },
+  { key:'TEST_USER', local:'qa@example.com', staging:'qa-staging@example.com', prod:'— missing —' },
+  { key:'AUTH_TOKEN', local:'[secret]', staging:'[secret]', prod:'[secret]' },
+  { key:'HEADLESS', local:'false', staging:'true', prod:'true' },
+  { key:'WORKERS', local:'4', staging:'8', prod:'— missing —' },
+  { key:'TIMEOUT', local:'30000', staging:'30000', prod:'60000' },
+  { key:'RETRY_COUNT', local:'0', staging:'2', prod:'3' },
+  { key:'STRIPE_KEY', local:'[secret]', staging:'[secret]', prod:'[secret]' },
+  { key:'ANALYTICS_ID', local:'— missing —', staging:'UA-TEST-1', prod:'UA-PROD-999' },
+];
+
+const DATASETS = [
+  { name:'checkout-users.csv', type:'CSV', rows:8, cols:6, icon:'📋', iconBg:'var(--gdim)', cols_arr:['email','password','first_name','last_name','zip','country'],
+    data:[['alice@test.com','Pass123!','Alice','Smith','10001','US'],['bob@test.com','Secure99','Bob','Jones','90210','US'],['claire@test.com','T3stPass!','Claire','Brown','EC1A 1BB','GB']] },
+  { name:'products.json', type:'JSON', rows:12, cols:5, icon:'{}', iconBg:'var(--bdim)', cols_arr:['sku','name','price','category','stock'],
+    data:[['SKU-001','Blue Sneakers','89.99','footwear','150'],['SKU-002','Trail Hikers Pro','129.99','footwear','42'],['SKU-003','Classic Tee','29.99','apparel','300']] },
+  { name:'coupon-codes.csv', type:'CSV', rows:5, cols:3, icon:'📋', iconBg:'var(--gdim)', cols_arr:['code','discount','valid'],
+    data:[['SAVE10','10%','true'],['SAVE20','20%','true'],['EXPIRED','15%','false']] },
+  { name:'api-credentials.xlsx', type:'Excel', rows:4, cols:4, icon:'📊', iconBg:'var(--ydim)', cols_arr:['client_id','client_secret','scope','env'],
+    data:[['app_dev_001','[secret]','read write','dev'],['app_stg_001','[secret]','read','staging']] },
+  { name:'edge-case-emails.csv', type:'CSV', rows:15, cols:2, icon:'📋', iconBg:'var(--rdim)', cols_arr:['email','expected_result'],
+    data:[['invalid','error'],['a@b','error'],['test+tag@example.com','success']] },
+];
+
+const BINDINGS = [
+  { var:'TEST_USER', col:'email', type:'String' },
+  { var:'TEST_PASS', col:'password', type:'Secret' },
+  { var:'FIRST_NAME', col:'first_name', type:'String' },
+  { var:'LAST_NAME', col:'last_name', type:'String' },
+  { var:'ZIP_CODE', col:'zip', type:'String' },
+  { var:'COUNTRY', col:'country', type:'String' },
+];
+
+const EXEC_ROW = { email:'alice@test.com', password:'Pass123!', first_name:'Alice', last_name:'Smith', zip:'10001', country:'US' };
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+const VIEWS = ['environments','variables','secrets','compare','datasets','bindings','datagen'];
+function navTo(view) {
+  VIEWS.forEach(v => {
+    document.getElementById('view-'+v).classList.toggle('active', v===view);
+    document.getElementById('nav-'+v)?.classList.toggle('active', v===view);
+  });
+  if (view==='environments') renderEnvGrid();
+  if (view==='variables') renderVarTable(VARIABLES);
+  if (view==='secrets') renderSecrets();
+  if (view==='compare') renderCompare();
+  if (view==='datasets') renderDatasets();
+  if (view==='bindings') renderBindings();
+}
+
+// ── ENVIRONMENTS ──────────────────────────────────────────────────────────────
+function renderEnvGrid() {
+  document.getElementById('envGrid').innerHTML = ENVS.map(e => `
+    <div class="env-card ${e.cls} ${e.active?'active-card':''}" onclick="setActiveEnv('${e.id}')">
+      <div class="env-card-hdr">
+        <div class="env-card-icon" style="background:${e.color}22;">${e.icon}</div>
+        <div class="env-card-meta">
+          <div class="env-card-name">${e.name}</div>
+          <div class="env-card-url">${e.url}</div>
+        </div>
+        ${e.active ? '<span class="env-active-pill">● Active</span>' : ''}
+      </div>
+      <div class="env-card-vars">
+        ${e.vars.map(v => `<span class="var-chip${v.includes('TOKEN')||v.includes('PASS')||v.includes('KEY')?' secret':''}">${v}</span>`).join('')}
+        <span class="var-chip" style="color:var(--text3);">+${Math.max(0,41-e.vars.length)} more</span>
+      </div>
+      <div class="env-card-footer">
+        <span class="env-stat"><span>🔒</span>${e.secrets} secrets</span>
+        <span class="env-stat" style="margin-left:8px;"><span>🧪</span>${e.tests} tests</span>
+        <span class="env-stat" style="margin-left:auto;font-size:10px;">Last run: ${e.lastRun}</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:12px;">
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();navTo('variables')">Edit Vars</button>
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showToast('Duplicating ${e.name}…')">Duplicate</button>
+        ${!e.active?`<button class="btn btn-green btn-sm" onclick="event.stopPropagation();setActiveEnv('${e.id}')">Activate</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function setActiveEnv(id) {
+  ENVS.forEach(e => e.active = e.id === id);
+  const env = ENVS.find(e=>e.id===id);
+  document.getElementById('activeEnvName').textContent = env.name;
+  renderEnvGrid();
+  showToast(`✓ Active environment: ${env.name}`);
+}
+
+function createEnv() {
+  hideModal('newEnvModal');
+  showToast('✓ New environment created');
+  renderEnvGrid();
+}
+
+// ── VARIABLES ─────────────────────────────────────────────────────────────────
+function renderVarTable(vars) {
+  const body = document.getElementById('varTableBody');
+  body.innerHTML = vars.map((v,i) => `
+    <div class="var-row col-4b" id="vrow-${i}">
+      <input type="checkbox" class="var-check" ${v.enabled?'checked':''} onchange="VARIABLES[${i}].enabled=this.checked">
+      <input class="var-input" value="${v.key}" placeholder="VARIABLE_KEY" oninput="VARIABLES[${i}].key=this.value">
+      <div style="display:flex;align-items:center;gap:4px;">
+        <input class="var-input ${v.type==='secret'?'secret-val':''}" value="${v.value}"
+          type="${v.type==='secret'?'password':'text'}"
+          placeholder="value or {{reference}}"
+          id="vinput-${i}"
+          oninput="VARIABLES[${i}].value=this.value">
+        ${v.type==='secret'?`<button class="secret-toggle" onclick="toggleSecret(${i})">👁</button>`:''}
+      </div>
+      <div><span class="type-badge type-${v.type}">${v.type}</span></div>
+      <div style="display:flex;gap:2px;">
+        <button class="del-btn" onclick="deleteVar(${i})">×</button>
+      </div>
+    </div>`).join('');
+}
+
+function toggleSecret(i) {
+  const input = document.getElementById('vinput-'+i);
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function deleteVar(i) {
+  VARIABLES.splice(i,1);
+  renderVarTable(VARIABLES);
+}
+
+function addVarRow() {
+  VARIABLES.push({ key:'', value:'', type:'string', enabled:true });
+  renderVarTable(VARIABLES);
+}
+
+function switchVarTab(el, tab) {
+  document.querySelectorAll('.vtab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const filtered = tab==='all' ? VARIABLES
+    : tab==='urls' ? VARIABLES.filter(v=>v.type==='url')
+    : tab==='auth' ? VARIABLES.filter(v=>v.key.toLowerCase().includes('auth')||v.key.toLowerCase().includes('token')||v.key.toLowerCase().includes('user')||v.key.toLowerCase().includes('pass'))
+    : tab==='secrets' ? VARIABLES.filter(v=>v.type==='secret')
+    : VARIABLES.filter(v=>!['url','secret'].includes(v.type));
+  renderVarTable(filtered);
+}
+
+function onVarEnvChange() {
+  const env = document.getElementById('varEnvSelect').value;
+  const modified = VARIABLES.map(v => {
+    if (env==='Staging') return {...v, value: v.key==='BASE_URL'?'https://staging.myshop.com':v.key==='HEADLESS'?'true':v.value};
+    if (env==='Production') return {...v, value: v.key==='BASE_URL'?'https://myshop.com':v.key==='WORKERS'?'8':v.value};
+    return v;
+  });
+  renderVarTable(modified);
+  showToast(`Variables: ${env}`);
+}
+
+// ── SECRETS ───────────────────────────────────────────────────────────────────
+function renderSecrets() {
+  document.getElementById('secretsList').innerHTML = SECRETS_LIST.map(s => {
+    const providerCls = s.provider==='vault'?'pb-vault':s.provider==='aws'?'pb-aws':'pb-local';
+    const providerLabel = s.provider==='vault'?'Vault':s.provider==='aws'?'AWS':'Local';
+    return `<div class="secret-item">
+      <div class="secret-icon">🔑</div>
+      <div>
+        <div class="secret-name">${s.name}</div>
+        <div class="secret-source">${s.source}</div>
+        <div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">
+          ${s.envs.map(e=>`<span style="font-size:10px;color:var(--text3);background:var(--bg4);padding:1px 6px;border-radius:3px;">${e}</span>`).join('')}
+        </div>
+      </div>
+      <div class="secret-val" style="font-family:'DM Mono',monospace;font-size:11px;">${s.val.slice(0,12)}…</div>
+      <span class="provider-badge ${providerCls}" style="margin-left:8px;">${providerLabel}</span>
+      <div class="secret-actions" style="margin-left:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Rotating ${s.name}…')">↻ Rotate</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('${s.name} copied')">Copy</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── COMPARE ───────────────────────────────────────────────────────────────────
+function renderCompare() {
+  const grid = document.getElementById('compareGrid');
+  grid.innerHTML = `
+    <div class="cg-hdr">Variable</div>
+    <div class="cg-hdr env-local">🟢 Local Dev</div>
+    <div class="cg-hdr env-staging">🟡 Staging</div>
+    <div class="cg-hdr env-prod">🔴 Production</div>
+    ${COMPARE_VARS.map(v => {
+      const isDiff = v.local !== v.staging || v.staging !== v.prod;
+      const isMissing = (s) => s === '— missing —';
+      return `<div class="cg-key">${v.key}</div>
+        <div class="cg-val ${isMissing(v.local)?'missing':isDiff&&v.local!==v.staging?'differs':''}">${v.local==='[secret]'?`<span style="color:var(--purple);font-style:italic;">••••••</span>`:v.local}</div>
+        <div class="cg-val ${isMissing(v.staging)?'missing':isDiff&&v.local!==v.staging?'differs':''}">${v.staging==='[secret]'?`<span style="color:var(--purple);font-style:italic;">••••••</span>`:v.staging}</div>
+        <div class="cg-val ${isMissing(v.prod)?'missing':isDiff&&v.staging!==v.prod?'differs':''}">${v.prod==='[secret]'?`<span style="color:var(--purple);font-style:italic;">••••••</span>`:v.prod}</div>`;
+    }).join('')}`;
+}
+
+// ── DATASETS ─────────────────────────────────────────────────────────────────
+function renderDatasets() {
+  document.getElementById('dsGrid').innerHTML = DATASETS.map(ds => `
+    <div class="ds-card" onclick="navTo('bindings');showToast('Opened: ${ds.name}')">
+      <div class="ds-card-hdr">
+        <div class="ds-icon" style="background:${ds.iconBg};font-family:'DM Mono',monospace;font-size:12px;font-weight:700;">${ds.icon}</div>
+        <div>
+          <div class="ds-name">${ds.name}</div>
+          <div class="ds-type">${ds.type} · ${ds.rows} rows · ${ds.cols} columns</div>
+        </div>
+      </div>
+      <div class="ds-preview">
+        <div class="dt-hdr">${ds.cols_arr.map(c=>`<div class="dt-cell">${c}</div>`).join('')}</div>
+        ${ds.data.map(row=>`<div class="dt-row">${row.map(v=>`<div class="dt-val ${v==='[secret]'?'masked':''}">${v==='[secret]'?'••••••':v}</div>`).join('')}</div>`).join('')}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showToast('Editing ${ds.name}')">Edit</button>
+        <button class="btn btn-green btn-sm" onclick="event.stopPropagation();navTo('bindings')">Bind →</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── BINDINGS ─────────────────────────────────────────────────────────────────
+function renderBindings() {
+  document.getElementById('bindingsList').innerHTML = BINDINGS.map((b,i) => `
+    <div class="binding-row">
+      <span class="binding-var">{{${b.var}}}</span>
+      <span class="binding-arrow">←</span>
+      <span class="binding-col">${b.col}</span>
+      <span class="binding-type">${b.type}</span>
+      <button class="del-btn" onclick="BINDINGS.splice(${i},1);renderBindings()">×</button>
+    </div>`).join('');
+
+  document.getElementById('execPreview').innerHTML = Object.entries(EXEC_ROW).map(([k,v]) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 12px;border-bottom:1px solid var(--border);">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--purple);min-width:110px;">{{${BINDINGS.find(b=>b.col===k)?.var||k.toUpperCase()}}}</span>
+      <span style="color:var(--text3);font-size:11px;">→</span>
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:${k==='password'?'var(--purple)':'var(--green)'};">${k==='password'?'••••••••':v}</span>
+    </div>`).join('');
+}
+
+function addBinding() {
+  BINDINGS.push({ var:'NEW_VAR', col:'column', type:'String' });
+  renderBindings();
+}
+
+// ── AI DATA GEN ───────────────────────────────────────────────────────────────
+function setPrompt(text) {
+  document.getElementById('datagenPrompt').value = text;
+}
+
+async function generateData() {
+  const prompt = document.getElementById('datagenPrompt').value.trim();
+  if (!prompt) return;
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true; btn.textContent = '⟳ Generating…';
+  document.getElementById('genThinking').style.display = '';
+  document.getElementById('genResult').style.display = 'none';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:800,
+        messages:[{ role:'user', content:`Generate a realistic test dataset for: "${prompt}". 
+Respond ONLY with a JSON object: {"columns": ["col1","col2",...], "rows": [["val1","val2",...],...]}.
+Generate 5-8 rows of realistic, varied data. For passwords use realistic-looking hashed values. No markdown, no explanation, just the JSON.` }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || '{}';
+    const clean = text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    renderGenResult(parsed.columns||[], parsed.rows||[]);
+  } catch(e) {
+    // Fallback
+    renderGenResult(
+      ['email','password','first_name','last_name','address','zip','country'],
+      [
+        ['alice.smith@testmail.com','Hx7!kP2mQ','Alice','Smith','123 Oak Lane','10001','US'],
+        ['bob.jones@example.net','Ry9#nL5vW','Bob','Jones','456 Elm St','90210','US'],
+        ['claire.brown@qa.org','Tz3@bM8sN','Claire','Brown','789 Pine Ave','EC1A 1BB','GB'],
+        ['david.lee@testing.io','Pw6$cK1xR','David','Lee','321 Maple Dr','M1 1AE','GB'],
+        ['emma.wilson@demo.com','Qv4%dJ7yT','Emma','Wilson','654 Cedar Blvd','2000','AU'],
+      ]
+    );
+  }
+  btn.disabled = false; btn.textContent = 'Generate ✦';
+  document.getElementById('genThinking').style.display = 'none';
+}
+
+function renderGenResult(columns, rows) {
+  document.getElementById('genResult').style.display = '';
+  document.getElementById('genResultLabel').textContent = `Generated — ${rows.length} rows × ${columns.length} columns`;
+  document.getElementById('genTableHdr').innerHTML = columns.map(c=>`<div class="dt-cell">${c}</div>`).join('');
+  document.getElementById('genTableBody').innerHTML = rows.map(row=>
+    `<div class="dt-row">${row.map((v,i)=>`<div class="dt-val ${columns[i]?.includes('pass')?'masked':''}">${columns[i]?.includes('pass')?'••••••••':v}</div>`).join('')}</div>`
+  ).join('');
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function showModal(id) { document.getElementById(id).classList.add('open'); }
+function hideModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); }));
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let toastT;
+function showToast(msg) {
+  clearTimeout(toastT);
+  let t = document.querySelector('.toast');
+  if (!t) { t=document.createElement('div'); t.className='toast'; document.body.appendChild(t); }
+  t.textContent=msg; t.style.opacity='1';
+  toastT=setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t?.remove(),300); }, 2600);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+navTo('environments');
+</script>
+</body>
+</html>

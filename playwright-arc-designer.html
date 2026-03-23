@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlaywrightArc Studio — Test Designer</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f12;
+    --bg2: #13161b;
+    --bg3: #1a1e25;
+    --bg4: #21262f;
+    --border: #2a303c;
+    --border2: #353d4a;
+    --text: #e8eaf0;
+    --text2: #9aa3b2;
+    --text3: #5a6475;
+    --accent: #00e5a0;
+    --accent2: #00b87d;
+    --accent-dim: rgba(0,229,160,0.1);
+    --accent-glow: rgba(0,229,160,0.2);
+    --blue: #4d9fff;
+    --blue-dim: rgba(77,159,255,0.12);
+    --orange: #ff8c42;
+    --orange-dim: rgba(255,140,66,0.12);
+    --red: #ff4d6a;
+    --red-dim: rgba(255,77,106,0.12);
+    --yellow: #ffd166;
+    --purple: #b06aff;
+    --purple-dim: rgba(176,106,255,0.12);
+    --radius: 6px;
+    --radius2: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    height: 50px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+    flex-shrink: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .logo-icon {
+    width: 22px; height: 22px;
+    background: var(--accent);
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    color: #000;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .divider-v { width: 1px; height: 20px; background: var(--border); }
+
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--text2); font-size: 12px;
+  }
+  .breadcrumb .active { color: var(--text); font-weight: 500; }
+  .breadcrumb span { color: var(--text3); }
+
+  .topbar-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .btn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    border: none; cursor: pointer;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px; font-weight: 500;
+    transition: all 0.15s;
+  }
+  .btn-ghost {
+    background: transparent; color: var(--text2);
+    border: 1px solid transparent;
+  }
+  .btn-ghost:hover { background: var(--bg3); color: var(--text); }
+  .btn-outline {
+    background: transparent; color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover { border-color: var(--border2); color: var(--text); }
+  .btn-primary {
+    background: var(--accent); color: #000;
+    border: 1px solid transparent; font-weight: 600;
+  }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,77,106,0.3); }
+  .btn-danger:hover { background: rgba(255,77,106,0.2); }
+
+  /* ENGINE BADGE */
+  .engine-badge {
+    display: flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+    border: 1px solid;
+  }
+  .engine-pw { background: rgba(45,212,191,0.1); color: #2dd4bf; border-color: rgba(45,212,191,0.3); }
+  .engine-pw:hover { background: rgba(45,212,191,0.18); }
+  .engine-se { background: var(--orange-dim); color: var(--orange); border-color: rgba(255,140,66,0.3); }
+
+  /* MAIN LAYOUT */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* LEFT PANEL */
+  .panel-left {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-section {
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .panel-header {
+    padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer;
+  }
+  .panel-header-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px; font-weight: 700;
+    color: var(--text3);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+  .panel-header-add {
+    width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px; color: var(--text3); font-size: 14px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .panel-header-add:hover { background: var(--bg3); color: var(--text); }
+
+  .action-library { flex: 1; overflow-y: auto; padding: 8px; }
+
+  .action-category { margin-bottom: 12px; }
+  .action-cat-label {
+    font-size: 10px; color: var(--text3); font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    padding: 2px 4px 6px;
+  }
+
+  .action-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px;
+    border-radius: var(--radius);
+    cursor: grab; user-select: none;
+    transition: all 0.12s;
+    margin-bottom: 2px;
+    border: 1px solid transparent;
+  }
+  .action-item:hover {
+    background: var(--bg3);
+    border-color: var(--border);
+  }
+  .action-item:active { cursor: grabbing; opacity: 0.7; }
+  .action-item.dragging { opacity: 0.4; }
+
+  .action-icon {
+    width: 24px; height: 24px;
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; flex-shrink: 0;
+  }
+  .action-label { font-size: 12px; color: var(--text2); font-weight: 500; }
+
+  .icon-nav { background: var(--blue-dim); color: var(--blue); }
+  .icon-click { background: var(--accent-dim); color: var(--accent); }
+  .icon-type { background: var(--purple-dim); color: var(--purple); }
+  .icon-assert { background: rgba(255,209,102,0.12); color: var(--yellow); }
+  .icon-wait { background: var(--orange-dim); color: var(--orange); }
+  .icon-api { background: rgba(255,77,106,0.12); color: var(--red); }
+  .icon-var { background: rgba(176,106,255,0.12); color: var(--purple); }
+  .icon-loop { background: rgba(0,229,160,0.08); color: var(--accent2); }
+  .icon-screenshot { background: var(--bg4); color: var(--text3); }
+
+  /* CENTER - CANVAS */
+  .canvas-area {
+    flex: 1;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .canvas-toolbar {
+    height: 44px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 16px; gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .test-meta { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .test-name-input {
+    background: transparent; border: none; outline: none;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: var(--text);
+    width: 280px;
+  }
+  .test-name-input::placeholder { color: var(--text3); }
+  .test-name-input:focus { border-bottom: 1px solid var(--accent); }
+
+  .step-count {
+    font-size: 11px; color: var(--text3);
+    background: var(--bg3);
+    padding: 2px 8px; border-radius: 20px;
+  }
+
+  /* CANVAS STEPS */
+  .canvas-scroll {
+    flex: 1; overflow-y: auto;
+    padding: 20px;
+  }
+
+  .canvas-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%;
+    gap: 16px; opacity: 0.5;
+  }
+  .canvas-empty-icon { font-size: 48px; }
+  .canvas-empty-text { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 600; color: var(--text3); }
+  .canvas-empty-sub { font-size: 12px; color: var(--text3); text-align: center; max-width: 280px; line-height: 1.6; }
+
+  /* DROP ZONE */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius2);
+    padding: 14px;
+    text-align: center;
+    color: var(--text3);
+    font-size: 12px;
+    transition: all 0.15s;
+    margin-top: 8px;
+  }
+  .drop-zone.over {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  /* STEP CARD */
+  .step-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    margin-bottom: 6px;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .step-card:hover { border-color: var(--border2); }
+  .step-card.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent-glow), 0 0 16px var(--accent-glow);
+  }
+  .step-card.drag-over { border-color: var(--accent); border-style: dashed; }
+
+  .step-card-inner {
+    display: flex; align-items: flex-start;
+    padding: 10px 12px; gap: 10px;
+  }
+
+  .step-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; color: var(--text3);
+    min-width: 22px; padding-top: 2px;
+    user-select: none;
+  }
+
+  .step-drag-handle {
+    color: var(--text3); font-size: 14px;
+    cursor: grab; padding-top: 1px;
+    opacity: 0; transition: opacity 0.15s;
+  }
+  .step-card:hover .step-drag-handle { opacity: 1; }
+
+  .step-body { flex: 1; min-width: 0; }
+
+  .step-type-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  }
+  .step-type-badge {
+    display: flex; align-items: center; gap: 5px;
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 600;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .step-params { display: flex; flex-direction: column; gap: 4px; }
+  .step-param {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .step-param-label {
+    font-size: 10px; color: var(--text3); font-weight: 500;
+    min-width: 60px; text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .step-param-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; color: var(--text);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px; padding: 3px 8px;
+    flex: 1; outline: none;
+    transition: border-color 0.15s;
+  }
+  .step-param-value:focus { border-color: var(--accent); }
+
+  .step-actions-row {
+    display: flex; align-items: center; gap: 4px;
+    padding: 0 12px 8px 44px;
+    opacity: 0; transition: opacity 0.15s;
+  }
+  .step-card:hover .step-actions-row { opacity: 1; }
+
+  .step-action-btn {
+    padding: 3px 8px; border-radius: 4px;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text3); font-size: 11px; cursor: pointer;
+    transition: all 0.1s;
+    font-family: 'Instrument Sans', sans-serif;
+  }
+  .step-action-btn:hover { background: var(--bg3); color: var(--text); }
+  .step-action-btn.del:hover { background: var(--red-dim); color: var(--red); border-color: rgba(255,77,106,0.3); }
+
+  .step-condition {
+    padding: 6px 12px 6px 44px;
+    font-size: 11px; color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    background: var(--bg3);
+    border-top: 1px solid var(--border);
+  }
+  .step-condition span { color: var(--yellow); }
+
+  /* AI PROMPT BAR */
+  .ai-bar {
+    padding: 12px 20px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .ai-bar-inner {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    transition: border-color 0.15s;
+  }
+  .ai-bar-inner:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  .ai-spark { font-size: 16px; flex-shrink: 0; }
+  .ai-input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+  }
+  .ai-input::placeholder { color: var(--text3); }
+  .ai-send {
+    background: var(--accent); color: #000;
+    border: none; border-radius: 6px;
+    padding: 5px 12px; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+    font-family: 'Instrument Sans', sans-serif;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .ai-send:hover { background: var(--accent2); }
+  .ai-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .ai-thinking {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--accent); font-size: 11px;
+    padding: 4px 0;
+  }
+  .ai-dots span {
+    display: inline-block; width: 5px; height: 5px;
+    background: var(--accent); border-radius: 50%;
+    animation: dot-pulse 1.2s ease-in-out infinite;
+  }
+  .ai-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .ai-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot-pulse {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* RIGHT PANEL */
+  .panel-right {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  .right-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .right-tab {
+    flex: 1; padding: 10px;
+    text-align: center;
+    font-size: 11px; font-weight: 600;
+    color: var(--text3); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+    font-family: 'Syne', sans-serif;
+  }
+  .right-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .right-tab:hover:not(.active) { color: var(--text2); }
+
+  .right-panel-body { flex: 1; overflow-y: auto; padding: 14px; }
+
+  /* PROPERTIES */
+  .prop-group { margin-bottom: 18px; }
+  .prop-group-label {
+    font-size: 10px; color: var(--text3); font-weight: 700;
+    letter-spacing: 0.6px; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .prop-row { margin-bottom: 8px; }
+  .prop-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+  .prop-input, .prop-select, .prop-textarea {
+    width: 100%;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; padding: 6px 8px; outline: none;
+    transition: border-color 0.15s;
+  }
+  .prop-input:focus, .prop-select:focus, .prop-textarea:focus {
+    border-color: var(--accent);
+  }
+  .prop-textarea { resize: vertical; min-height: 60px; }
+  .prop-select { cursor: pointer; }
+  .prop-select option { background: var(--bg2); }
+
+  .prop-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0;
+  }
+  .toggle-switch {
+    width: 36px; height: 20px;
+    background: var(--bg4); border-radius: 10px;
+    cursor: pointer; position: relative; transition: background 0.15s;
+    border: 1px solid var(--border);
+  }
+  .toggle-switch.on { background: var(--accent2); border-color: transparent; }
+  .toggle-knob {
+    position: absolute; top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    background: var(--text3); border-radius: 50%;
+    transition: all 0.15s;
+  }
+  .toggle-switch.on .toggle-knob { left: 18px; background: #000; }
+
+  /* VARIABLES */
+  .var-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px;
+    background: var(--bg3); border-radius: var(--radius);
+    margin-bottom: 4px; border: 1px solid var(--border);
+  }
+  .var-name {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--purple); flex: 1; font-weight: 500;
+  }
+  .var-value {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: var(--text2); max-width: 100px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .var-del { color: var(--text3); cursor: pointer; font-size: 12px; }
+  .var-del:hover { color: var(--red); }
+
+  /* EXECUTION LOG */
+  .run-panel {
+    background: var(--bg); border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    transition: height 0.2s;
+  }
+  .run-panel-header {
+    height: 36px; display: flex; align-items: center;
+    padding: 0 16px; gap: 10px;
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .run-panel-title {
+    font-family: 'Syne', sans-serif; font-size: 11px;
+    font-weight: 700; color: var(--text3); letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+  .run-status {
+    font-size: 10px; font-weight: 600; padding: 2px 8px;
+    border-radius: 20px; font-family: 'DM Mono', monospace;
+  }
+  .run-status.idle { background: var(--bg3); color: var(--text3); }
+  .run-status.running { background: var(--blue-dim); color: var(--blue); }
+  .run-status.passed { background: var(--accent-dim); color: var(--accent); }
+  .run-status.failed { background: var(--red-dim); color: var(--red); }
+
+  .run-log { padding: 10px 16px; max-height: 160px; overflow-y: auto; }
+  .log-line {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    padding: 2px 0; display: flex; gap: 10px;
+    color: var(--text2); border-bottom: 1px solid rgba(255,255,255,0.03);
+    animation: fadeIn 0.15s ease-out;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; } }
+  .log-time { color: var(--text3); white-space: nowrap; }
+  .log-pass { color: var(--accent); }
+  .log-fail { color: var(--red); }
+  .log-info { color: var(--blue); }
+  .log-warn { color: var(--yellow); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border2); }
+
+  /* NOTIFICATIONS */
+  .toast {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius2); padding: 10px 16px;
+    font-size: 12px; color: var(--text);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    z-index: 1000;
+    animation: slide-in 0.2s ease-out;
+    display: flex; align-items: center; gap: 8px;
+  }
+  @keyframes slide-in {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .badge-new {
+    background: var(--accent); color: #000;
+    font-size: 9px; font-weight: 800;
+    padding: 1px 5px; border-radius: 3px; letter-spacing: 0.5px;
+  }
+
+  /* STEP INSERT LINE */
+  .step-insert-line {
+    height: 3px; border-radius: 2px;
+    background: var(--accent);
+    margin: -3px 0 3px;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .step-insert-line.visible { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">▶</div>
+    PlaywrightArc
+  </div>
+  <div class="divider-v"></div>
+  <div class="breadcrumb">
+    <span>E-Commerce Suite</span>
+    <span>›</span>
+    <span>Checkout Flows</span>
+    <span>›</span>
+    <span class="active">Guest Checkout — Add to Cart</span>
+  </div>
+  <div class="topbar-right">
+    <div class="engine-badge engine-pw" id="engineBadge" onclick="toggleEngine()" title="Click to switch engine">
+      <span>⚡</span> Playwright
+    </div>
+    <button class="btn btn-outline" onclick="clearSteps()">⟳ Clear</button>
+    <button class="btn btn-outline" onclick="viewCode()">⌥ Code</button>
+    <button class="btn btn-primary" onclick="runTest()">▶ Run Test</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT: ACTION LIBRARY -->
+  <div class="panel-left">
+    <div class="panel-section">
+      <div class="panel-header">
+        <span class="panel-header-title">Action Library</span>
+      </div>
+    </div>
+
+    <div class="action-library">
+      <div class="action-category">
+        <div class="action-cat-label">Navigation</div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'navigate')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-nav">🔗</div>
+          <span class="action-label">Navigate To</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'go_back')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-nav">←</div>
+          <span class="action-label">Go Back</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'reload')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-nav">↺</div>
+          <span class="action-label">Reload Page</span>
+        </div>
+      </div>
+
+      <div class="action-category">
+        <div class="action-cat-label">Interactions</div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'click')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-click">👆</div>
+          <span class="action-label">Click</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'type')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-type">⌨</div>
+          <span class="action-label">Type Text</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'clear')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-type">⌫</div>
+          <span class="action-label">Clear Field</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'select')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-click">▾</div>
+          <span class="action-label">Select Option</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'hover')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-click">⟁</div>
+          <span class="action-label">Hover</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'upload')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-click">↑</div>
+          <span class="action-label">Upload File</span>
+        </div>
+      </div>
+
+      <div class="action-category">
+        <div class="action-cat-label">Assertions</div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'assert_visible')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-assert">✓</div>
+          <span class="action-label">Assert Visible</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'assert_text')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-assert">≡</div>
+          <span class="action-label">Assert Text</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'assert_url')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-assert">⊕</div>
+          <span class="action-label">Assert URL</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'assert_count')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-assert">#</div>
+          <span class="action-label">Assert Count</span>
+        </div>
+      </div>
+
+      <div class="action-category">
+        <div class="action-cat-label">Waits &amp; Timing</div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'wait_visible')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-wait">⏳</div>
+          <span class="action-label">Wait for Element</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'wait_ms')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-wait">⏱</div>
+          <span class="action-label">Wait (ms)</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'wait_network')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-wait">⟳</div>
+          <span class="action-label">Wait Network Idle</span>
+        </div>
+      </div>
+
+      <div class="action-category">
+        <div class="action-cat-label">API</div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'api_get')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-api">GET</div>
+          <span class="action-label">API GET</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'api_post')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-api">POST</div>
+          <span class="action-label">API POST</span>
+        </div>
+      </div>
+
+      <div class="action-category">
+        <div class="action-cat-label">Flow Control</div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'loop')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-loop">↻</div>
+          <span class="action-label">Loop</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'if')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-loop">⎇</div>
+          <span class="action-label">If Condition</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'set_variable')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-var">$</div>
+          <span class="action-label">Set Variable</span>
+        </div>
+        <div class="action-item" draggable="true" ondragstart="dragAction(event,'screenshot')" ondragend="dragEnd(event)">
+          <div class="action-icon icon-screenshot">📷</div>
+          <span class="action-label">Screenshot</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: CANVAS -->
+  <div class="canvas-area">
+    <div class="canvas-toolbar">
+      <div class="test-meta">
+        <input class="test-name-input" id="testName" placeholder="Untitled Test Case" value="Guest Checkout — Add to Cart">
+        <span class="step-count" id="stepCount">0 steps</span>
+      </div>
+      <button class="btn btn-ghost" onclick="addHook('before')">+ Before Hook</button>
+      <button class="btn btn-ghost" onclick="addHook('after')">+ After Hook</button>
+    </div>
+
+    <div class="canvas-scroll" id="canvasScroll"
+      ondragover="onCanvasDragOver(event)"
+      ondrop="onCanvasDrop(event)"
+      ondragleave="onCanvasDragLeave(event)">
+
+      <div id="stepList"></div>
+      <div class="drop-zone" id="dropZone">
+        Drop actions here or use the AI bar below
+      </div>
+    </div>
+
+    <!-- AI BAR -->
+    <div class="ai-bar">
+      <div class="ai-bar-inner">
+        <span class="ai-spark">✦</span>
+        <input class="ai-input" id="aiInput"
+          placeholder="Describe steps in plain English… e.g. 'Click add to cart, then verify the cart badge shows 1'"
+          onkeydown="if(event.key==='Enter') generateSteps()">
+        <button class="ai-send" id="aiSendBtn" onclick="generateSteps()">
+          Generate ✦
+        </button>
+      </div>
+      <div id="aiThinking" class="ai-thinking" style="display:none; margin-top:6px; padding-left: 4px;">
+        <div class="ai-dots"><span></span><span></span><span></span></div>
+        <span>Generating test steps…</span>
+      </div>
+    </div>
+
+    <!-- RUN LOG -->
+    <div class="run-panel" id="runPanel">
+      <div class="run-panel-header" onclick="toggleLog()">
+        <span class="run-panel-title">Execution Log</span>
+        <span class="run-status idle" id="runStatus">IDLE</span>
+        <span style="margin-left:auto; color:var(--text3); font-size:12px;" id="logToggleIcon">▲</span>
+      </div>
+      <div id="runLog" class="run-log" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel-right">
+    <div class="right-tabs">
+      <div class="right-tab active" onclick="switchTab(this,'properties')">Properties</div>
+      <div class="right-tab" onclick="switchTab(this,'variables')">Variables</div>
+      <div class="right-tab" onclick="switchTab(this,'data')">Data</div>
+    </div>
+
+    <div class="right-panel-body" id="rightPanelBody">
+      <!-- Properties -->
+      <div id="tabProperties">
+        <div id="noStepSelected" style="text-align:center; padding:30px 0; color:var(--text3);">
+          <div style="font-size:28px;margin-bottom:8px;">⊙</div>
+          <div style="font-size:12px;">Select a step to edit its properties</div>
+        </div>
+        <div id="stepPropsPanel" style="display:none;">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <!-- Variables -->
+      <div id="tabVariables" style="display:none;">
+        <div class="prop-group">
+          <div class="prop-group-label" style="display:flex;align-items:center;justify-content:space-between;">
+            <span>Test Variables</span>
+            <span class="panel-header-add" onclick="addVariable()">+</span>
+          </div>
+          <div id="varList"></div>
+        </div>
+
+        <div class="prop-group">
+          <div class="prop-group-label">Environment</div>
+          <div class="prop-row">
+            <select class="prop-select">
+              <option>Local Dev</option>
+              <option>Staging</option>
+              <option>Production</option>
+            </select>
+          </div>
+          <div class="var-item">
+            <span class="var-name">BASE_URL</span>
+            <span class="var-value">http://localhost:3000</span>
+          </div>
+          <div class="var-item">
+            <span class="var-name">API_KEY</span>
+            <span class="var-value">••••••••</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data -->
+      <div id="tabData" style="display:none;">
+        <div class="prop-group">
+          <div class="prop-group-label">Data Source</div>
+          <div class="prop-row">
+            <select class="prop-select">
+              <option>Inline Dataset</option>
+              <option>CSV File</option>
+              <option>JSON File</option>
+              <option>Excel Sheet</option>
+            </select>
+          </div>
+        </div>
+        <div class="prop-group">
+          <div class="prop-group-label">Iterations</div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);">
+            <div style="color:var(--text3);margin-bottom:4px;">// No dataset configured</div>
+            <div style="color:var(--accent);">→ Add data binding via Properties</div>
+          </div>
+        </div>
+        <button class="btn btn-outline" style="width:100%;margin-top:8px;" onclick="showToast('📊 Data editor coming soon')">
+          + Configure Dataset
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let steps = [];
+let selectedStepId = null;
+let draggingAction = null;
+let draggingStepId = null;
+let engine = 'playwright';
+let logOpen = false;
+let variables = [
+  { name: 'productName', value: 'Blue Sneakers' },
+  { name: 'quantity', value: '2' }
+];
+
+// ─── ACTION DEFINITIONS ───────────────────────────────────────────────────────
+const ACTION_DEFS = {
+  navigate:      { label: 'Navigate To',      color: '#4d9fff', bg: 'rgba(77,159,255,0.12)',   params: [{k:'url', label:'URL', type:'text', ph:'https://example.com'}] },
+  go_back:       { label: 'Go Back',          color: '#4d9fff', bg: 'rgba(77,159,255,0.12)',   params: [] },
+  reload:        { label: 'Reload Page',      color: '#4d9fff', bg: 'rgba(77,159,255,0.12)',   params: [] },
+  click:         { label: 'Click',            color: '#00e5a0', bg: 'rgba(0,229,160,0.1)',     params: [{k:'selector', label:'Selector', type:'text', ph:'button#add-to-cart'}] },
+  type:          { label: 'Type Text',        color: '#b06aff', bg: 'rgba(176,106,255,0.12)',  params: [{k:'selector', label:'Selector', type:'text', ph:'input[name="email"]'}, {k:'value', label:'Text', type:'text', ph:'user@example.com'}] },
+  clear:         { label: 'Clear',            color: '#b06aff', bg: 'rgba(176,106,255,0.12)',  params: [{k:'selector', label:'Selector', type:'text', ph:'input'}] },
+  select:        { label: 'Select Option',    color: '#00e5a0', bg: 'rgba(0,229,160,0.1)',     params: [{k:'selector', label:'Selector', type:'text', ph:'select#size'}, {k:'value', label:'Option', type:'text', ph:'Large'}] },
+  hover:         { label: 'Hover',            color: '#00e5a0', bg: 'rgba(0,229,160,0.1)',     params: [{k:'selector', label:'Selector', type:'text', ph:'.dropdown-menu'}] },
+  upload:        { label: 'Upload File',      color: '#00e5a0', bg: 'rgba(0,229,160,0.1)',     params: [{k:'selector', label:'Input', type:'text', ph:'input[type="file"]'}, {k:'file', label:'File Path', type:'text', ph:'/fixtures/image.png'}] },
+  assert_visible:{ label: 'Assert Visible',   color: '#ffd166', bg: 'rgba(255,209,102,0.12)',  params: [{k:'selector', label:'Selector', type:'text', ph:'.success-banner'}] },
+  assert_text:   { label: 'Assert Text',      color: '#ffd166', bg: 'rgba(255,209,102,0.12)',  params: [{k:'selector', label:'Selector', type:'text', ph:'h1'}, {k:'expected', label:'Expected', type:'text', ph:'Order Confirmed'}] },
+  assert_url:    { label: 'Assert URL',       color: '#ffd166', bg: 'rgba(255,209,102,0.12)',  params: [{k:'selector', label:'Contains', type:'text', ph:'/checkout/confirm'}] },
+  assert_count:  { label: 'Assert Count',     color: '#ffd166', bg: 'rgba(255,209,102,0.12)',  params: [{k:'selector', label:'Selector', type:'text', ph:'.cart-item'}, {k:'count', label:'Count', type:'number', ph:'3'}] },
+  wait_visible:  { label: 'Wait for Element', color: '#ff8c42', bg: 'rgba(255,140,66,0.12)',   params: [{k:'selector', label:'Selector', type:'text', ph:'.loading-spinner'}] },
+  wait_ms:       { label: 'Wait (ms)',        color: '#ff8c42', bg: 'rgba(255,140,66,0.12)',   params: [{k:'ms', label:'Milliseconds', type:'number', ph:'1000'}] },
+  wait_network:  { label: 'Wait Network Idle',color: '#ff8c42', bg: 'rgba(255,140,66,0.12)',   params: [] },
+  api_get:       { label: 'API GET',          color: '#ff4d6a', bg: 'rgba(255,77,106,0.12)',   params: [{k:'url', label:'URL', type:'text', ph:'/api/cart'}, {k:'storeAs', label:'Store As', type:'text', ph:'cartResponse'}] },
+  api_post:      { label: 'API POST',         color: '#ff4d6a', bg: 'rgba(255,77,106,0.12)',   params: [{k:'url', label:'URL', type:'text', ph:'/api/order'}, {k:'body', label:'Body', type:'text', ph:'{"sku":"123"}'}] },
+  loop:          { label: 'Loop',             color: '#00b87d', bg: 'rgba(0,184,125,0.1)',     params: [{k:'times', label:'Times', type:'number', ph:'3'}] },
+  if:            { label: 'If Condition',     color: '#00b87d', bg: 'rgba(0,184,125,0.1)',     params: [{k:'condition', label:'Condition', type:'text', ph:'${cartCount} > 0'}] },
+  set_variable:  { label: 'Set Variable',     color: '#b06aff', bg: 'rgba(176,106,255,0.12)',  params: [{k:'varName', label:'Variable', type:'text', ph:'itemCount'}, {k:'value', label:'Value', type:'text', ph:'${response.count}'}] },
+  screenshot:    { label: 'Screenshot',       color: '#5a6475', bg: 'rgba(90,100,117,0.15)',   params: [{k:'name', label:'Filename', type:'text', ph:'checkout-step-3'}] },
+};
+
+// ─── INITIAL DEMO STEPS ──────────────────────────────────────────────────────
+function loadDemo() {
+  steps = [
+    { id: uid(), type: 'navigate',      params: { url: '${BASE_URL}/products' }, enabled: true },
+    { id: uid(), type: 'wait_network',  params: {}, enabled: true },
+    { id: uid(), type: 'click',         params: { selector: '[data-testid="product-card"]:first-child' }, enabled: true },
+    { id: uid(), type: 'assert_visible',params: { selector: '.product-title' }, enabled: true },
+    { id: uid(), type: 'click',         params: { selector: 'button#add-to-cart' }, enabled: true },
+    { id: uid(), type: 'assert_text',   params: { selector: '.cart-badge', expected: '1' }, enabled: true },
+    { id: uid(), type: 'screenshot',    params: { name: 'cart-badge-visible' }, enabled: true },
+  ];
+  renderSteps();
+}
+
+function uid() { return Math.random().toString(36).slice(2, 9); }
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function renderSteps() {
+  const list = document.getElementById('stepList');
+  const def_zone = document.getElementById('dropZone');
+  const count = steps.filter(s => s.enabled).length;
+  document.getElementById('stepCount').textContent = `${steps.length} step${steps.length!==1?'s':''}`;
+
+  if (steps.length === 0) {
+    list.innerHTML = '';
+    def_zone.style.display = '';
+    return;
+  }
+  def_zone.style.display = 'none';
+
+  list.innerHTML = steps.map((step, i) => {
+    const def = ACTION_DEFS[step.type] || { label: step.type, color:'#9aa3b2', bg:'rgba(154,163,178,0.1)', params: [] };
+    const isSelected = step.id === selectedStepId;
+    const paramEntries = Object.entries(step.params || {});
+
+    const paramHtml = def.params.map(pd => {
+      const val = step.params[pd.k] || '';
+      return `<div class="step-param">
+        <span class="step-param-label">${pd.label}</span>
+        <input class="step-param-value"
+          type="${pd.type || 'text'}"
+          value="${escHtml(val)}"
+          placeholder="${escHtml(pd.ph || '')}"
+          oninput="updateParam('${step.id}','${pd.k}',this.value)"
+          onclick="selectStep('${step.id}')"
+          style="flex:1">
+      </div>`;
+    }).join('');
+
+    return `
+      <div class="step-card${isSelected ? ' selected' : ''}"
+        id="step-${step.id}"
+        onclick="selectStep('${step.id}')"
+        draggable="true"
+        ondragstart="dragStep(event,'${step.id}')"
+        ondragover="stepDragOver(event,'${step.id}')"
+        ondrop="stepDrop(event,'${step.id}')"
+        ondragend="dragEnd(event)"
+        style="opacity:${step.enabled ? 1 : 0.45}">
+        <div class="step-card-inner">
+          <span class="step-num">${String(i+1).padStart(2,'0')}</span>
+          <span class="step-drag-handle">⋮⋮</span>
+          <div class="step-body">
+            <div class="step-type-row">
+              <span class="step-type-badge" style="background:${def.bg};color:${def.color}">
+                ${def.label}
+              </span>
+              ${!step.enabled ? '<span style="font-size:10px;color:var(--text3);background:var(--bg4);padding:1px 6px;border-radius:3px;font-weight:600;">DISABLED</span>' : ''}
+            </div>
+            <div class="step-params">${paramHtml}</div>
+          </div>
+        </div>
+        <div class="step-actions-row">
+          <button class="step-action-btn" onclick="event.stopPropagation();duplicateStep('${step.id}')">Duplicate</button>
+          <button class="step-action-btn" onclick="event.stopPropagation();toggleStepEnabled('${step.id}')">${step.enabled ? 'Disable' : 'Enable'}</button>
+          <button class="step-action-btn" onclick="event.stopPropagation();addStepAfter('${step.id}')">Insert After</button>
+          <button class="step-action-btn del" onclick="event.stopPropagation();deleteStep('${step.id}')">Delete</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── STEP OPS ────────────────────────────────────────────────────────────────
+function selectStep(id) {
+  selectedStepId = id;
+  renderSteps();
+  renderStepProps(id);
+}
+
+function updateParam(id, key, value) {
+  const s = steps.find(s => s.id === id);
+  if (s) s.params[key] = value;
+  document.getElementById('stepCount').textContent = `${steps.length} step${steps.length!==1?'s':''}`;
+}
+
+function deleteStep(id) {
+  steps = steps.filter(s => s.id !== id);
+  if (selectedStepId === id) {
+    selectedStepId = null;
+    document.getElementById('noStepSelected').style.display = '';
+    document.getElementById('stepPropsPanel').style.display = 'none';
+  }
+  renderSteps();
+}
+
+function duplicateStep(id) {
+  const i = steps.findIndex(s => s.id === id);
+  if (i < 0) return;
+  const copy = JSON.parse(JSON.stringify(steps[i]));
+  copy.id = uid();
+  steps.splice(i+1, 0, copy);
+  renderSteps();
+}
+
+function toggleStepEnabled(id) {
+  const s = steps.find(s => s.id === id);
+  if (s) s.enabled = !s.enabled;
+  renderSteps();
+}
+
+function addStepAfter(id) {
+  const i = steps.findIndex(s => s.id === id);
+  const newStep = { id: uid(), type: 'click', params: { selector: '' }, enabled: true };
+  steps.splice(i+1, 0, newStep);
+  renderSteps();
+  setTimeout(() => selectStep(newStep.id), 50);
+}
+
+function clearSteps() {
+  if (steps.length === 0) return;
+  if (confirm('Clear all steps?')) {
+    steps = []; selectedStepId = null;
+    document.getElementById('noStepSelected').style.display = '';
+    document.getElementById('stepPropsPanel').style.display = 'none';
+    renderSteps();
+  }
+}
+
+function addHook(type) {
+  showToast(`+ ${type === 'before' ? 'Before' : 'After'} hook added`);
+}
+
+// ─── DRAG ACTION FROM LIBRARY ─────────────────────────────────────────────────
+function dragAction(e, type) {
+  draggingAction = type;
+  draggingStepId = null;
+  e.dataTransfer.effectAllowed = 'copy';
+  e.currentTarget.classList.add('dragging');
+}
+
+function dragStep(e, id) {
+  draggingStepId = id;
+  draggingAction = null;
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function dragEnd(e) {
+  draggingAction = null;
+  document.getElementById('dropZone').classList.remove('over');
+  document.querySelectorAll('.action-item').forEach(el => el.classList.remove('dragging'));
+  document.querySelectorAll('.step-card').forEach(el => el.classList.remove('drag-over'));
+}
+
+function onCanvasDragOver(e) {
+  e.preventDefault();
+  if (draggingAction) {
+    document.getElementById('dropZone').classList.add('over');
+  }
+}
+
+function onCanvasDragLeave(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    document.getElementById('dropZone').classList.remove('over');
+  }
+}
+
+function onCanvasDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('over');
+  if (draggingAction) {
+    addStep(draggingAction);
+    draggingAction = null;
+  }
+}
+
+function stepDragOver(e, id) {
+  e.preventDefault(); e.stopPropagation();
+  document.querySelectorAll('.step-card').forEach(el => el.classList.remove('drag-over'));
+  document.getElementById('step-' + id)?.classList.add('drag-over');
+}
+
+function stepDrop(e, targetId) {
+  e.preventDefault(); e.stopPropagation();
+  document.querySelectorAll('.step-card').forEach(el => el.classList.remove('drag-over'));
+
+  if (draggingAction) {
+    const ti = steps.findIndex(s => s.id === targetId);
+    const newStep = createStep(draggingAction);
+    steps.splice(ti, 0, newStep);
+    draggingAction = null;
+    renderSteps();
+    return;
+  }
+
+  if (draggingStepId && draggingStepId !== targetId) {
+    const fi = steps.findIndex(s => s.id === draggingStepId);
+    const ti = steps.findIndex(s => s.id === targetId);
+    const [moved] = steps.splice(fi, 1);
+    steps.splice(ti, 0, moved);
+    draggingStepId = null;
+    renderSteps();
+  }
+}
+
+function createStep(type) {
+  const def = ACTION_DEFS[type] || { params: [] };
+  const params = {};
+  def.params.forEach(p => params[p.k] = '');
+  return { id: uid(), type, params, enabled: true };
+}
+
+function addStep(type) {
+  const step = createStep(type);
+  steps.push(step);
+  renderSteps();
+  setTimeout(() => {
+    document.getElementById('canvasScroll').scrollTop = 99999;
+    selectStep(step.id);
+  }, 30);
+}
+
+// ─── STEP PROPERTIES PANEL ───────────────────────────────────────────────────
+function renderStepProps(id) {
+  const step = steps.find(s => s.id === id);
+  if (!step) return;
+  const def = ACTION_DEFS[step.type] || { label: step.type, color:'#9aa3b2', bg:'#1a1e25', params: [] };
+
+  document.getElementById('noStepSelected').style.display = 'none';
+  const panel = document.getElementById('stepPropsPanel');
+  panel.style.display = '';
+
+  panel.innerHTML = `
+    <div class="prop-group">
+      <div class="prop-group-label" style="display:flex;align-items:center;gap:8px;">
+        <span style="background:${def.bg};color:${def.color};padding:2px 8px;border-radius:4px;font-size:11px;">${def.label}</span>
+      </div>
+
+      <div class="prop-row">
+        <div class="prop-label">Action Type</div>
+        <select class="prop-select" onchange="changeStepType('${id}',this.value)">
+          ${Object.entries(ACTION_DEFS).map(([k,v]) =>
+            `<option value="${k}" ${k===step.type?'selected':''}>${v.label}</option>`
+          ).join('')}
+        </select>
+      </div>
+
+      ${def.params.map(pd => `
+        <div class="prop-row">
+          <div class="prop-label">${pd.label}</div>
+          <input class="prop-input" type="${pd.type||'text'}"
+            value="${escHtml(step.params[pd.k]||'')}"
+            placeholder="${escHtml(pd.ph||'')}"
+            oninput="updateParam('${id}','${pd.k}',this.value);renderSteps()">
+        </div>`).join('')}
+    </div>
+
+    <div class="prop-group">
+      <div class="prop-group-label">Step Options</div>
+      <div class="prop-toggle">
+        <span style="font-size:12px;color:var(--text2)">Enabled</span>
+        <div class="toggle-switch ${step.enabled?'on':''}" onclick="toggleStepEnabled('${id}');renderStepProps('${id}')">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+      <div class="prop-toggle">
+        <span style="font-size:12px;color:var(--text2)">Continue on fail</span>
+        <div class="toggle-switch ${step.continueOnFail?'on':''}" onclick="toggleContinue('${id}')">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+      <div class="prop-row">
+        <div class="prop-label">Timeout (ms)</div>
+        <input class="prop-input" type="number" value="${step.timeout||30000}"
+          oninput="updateStepMeta('${id}','timeout',this.value)">
+      </div>
+      <div class="prop-row">
+        <div class="prop-label">Description</div>
+        <textarea class="prop-textarea" placeholder="Optional note…"
+          oninput="updateStepMeta('${id}','description',this.value)">${step.description||''}</textarea>
+      </div>
+    </div>`;
+}
+
+function changeStepType(id, newType) {
+  const step = steps.find(s => s.id === id);
+  if (!step) return;
+  step.type = newType;
+  const def = ACTION_DEFS[newType] || { params: [] };
+  step.params = {};
+  def.params.forEach(p => step.params[p.k] = '');
+  renderSteps();
+  renderStepProps(id);
+}
+
+function toggleContinue(id) {
+  const s = steps.find(s => s.id === id);
+  if (s) { s.continueOnFail = !s.continueOnFail; renderStepProps(id); }
+}
+
+function updateStepMeta(id, key, value) {
+  const s = steps.find(s => s.id === id);
+  if (s) s[key] = value;
+}
+
+// ─── ENGINE TOGGLE ────────────────────────────────────────────────────────────
+function toggleEngine() {
+  engine = engine === 'playwright' ? 'selenium' : 'playwright';
+  const badge = document.getElementById('engineBadge');
+  if (engine === 'playwright') {
+    badge.className = 'engine-badge engine-pw';
+    badge.innerHTML = '<span>⚡</span> Playwright';
+  } else {
+    badge.className = 'engine-badge engine-se';
+    badge.innerHTML = '<span>◈</span> Selenium';
+  }
+  showToast(`Engine switched to ${engine === 'playwright' ? 'Playwright' : 'Selenium'}`);
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(el, tab) {
+  document.querySelectorAll('.right-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['properties','variables','data'].forEach(t => {
+    const el2 = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (el2) el2.style.display = t === tab ? '' : 'none';
+  });
+}
+
+// ─── VARIABLES ────────────────────────────────────────────────────────────────
+function renderVars() {
+  const list = document.getElementById('varList');
+  list.innerHTML = variables.map((v, i) => `
+    <div class="var-item">
+      <span class="var-name">\${${v.name}}</span>
+      <span class="var-value">${escHtml(v.value)}</span>
+      <span class="var-del" onclick="removeVar(${i})">×</span>
+    </div>`).join('');
+}
+
+function addVariable() {
+  const name = prompt('Variable name:');
+  if (!name) return;
+  const value = prompt('Value:') || '';
+  variables.push({ name, value });
+  renderVars();
+}
+
+function removeVar(i) {
+  variables.splice(i, 1);
+  renderVars();
+}
+
+// ─── RUN TEST ─────────────────────────────────────────────────────────────────
+function runTest() {
+  if (steps.length === 0) { showToast('⚠ Add some steps first'); return; }
+  logOpen = true;
+  document.getElementById('runLog').style.display = '';
+  document.getElementById('logToggleIcon').textContent = '▼';
+  document.getElementById('runLog').innerHTML = '';
+
+  const statusEl = document.getElementById('runStatus');
+  statusEl.className = 'run-status running';
+  statusEl.textContent = 'RUNNING';
+
+  const enabledSteps = steps.filter(s => s.enabled);
+  let i = 0;
+
+  function runNext() {
+    if (i >= enabledSteps.length) {
+      statusEl.className = 'run-status passed';
+      statusEl.textContent = 'PASSED';
+      appendLog(`✓ All ${enabledSteps.length} steps passed`, 'log-pass');
+      showToast('✓ Test passed — ' + enabledSteps.length + ' steps');
+      return;
+    }
+    const step = enabledSteps[i];
+    const def = ACTION_DEFS[step.type] || { label: step.type };
+    const t = new Date().toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const detail = step.params.url || step.params.selector || step.params.varName || '';
+    appendLog(`[${t}] ${def.label}${detail ? ' → ' + detail : ''}`, 'log-info');
+
+    // Simulate occasional failure
+    if (Math.random() > 0.93) {
+      statusEl.className = 'run-status failed';
+      statusEl.textContent = 'FAILED';
+      appendLog(`✗ Step ${i+1} failed: Element not found within timeout`, 'log-fail');
+      showToast('✗ Test failed at step ' + (i+1));
+      return;
+    }
+    i++;
+    setTimeout(runNext, 250 + Math.random() * 400);
+  }
+  setTimeout(runNext, 100);
+}
+
+function appendLog(msg, cls) {
+  const log = document.getElementById('runLog');
+  const line = document.createElement('div');
+  line.className = 'log-line ' + (cls || '');
+  line.textContent = msg;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+function toggleLog() {
+  logOpen = !logOpen;
+  document.getElementById('runLog').style.display = logOpen ? '' : 'none';
+  document.getElementById('logToggleIcon').textContent = logOpen ? '▼' : '▲';
+}
+
+// ─── CODE VIEW ────────────────────────────────────────────────────────────────
+function viewCode() {
+  const lines = [];
+  const name = document.getElementById('testName').value || 'Untitled Test';
+  lines.push(`import { test, expect } from '@playwright/test';`);
+  lines.push('');
+  lines.push(`test('${name}', async ({ page }) => {`);
+  steps.filter(s => s.enabled).forEach(step => {
+    const p = step.params;
+    switch(step.type) {
+      case 'navigate':       lines.push(`  await page.goto('${p.url||''}');`); break;
+      case 'go_back':        lines.push(`  await page.goBack();`); break;
+      case 'reload':         lines.push(`  await page.reload();`); break;
+      case 'click':          lines.push(`  await page.click('${p.selector||''}');`); break;
+      case 'type':           lines.push(`  await page.fill('${p.selector||''}', '${p.value||''}');`); break;
+      case 'clear':          lines.push(`  await page.fill('${p.selector||''}', '');`); break;
+      case 'hover':          lines.push(`  await page.hover('${p.selector||''}');`); break;
+      case 'assert_visible': lines.push(`  await expect(page.locator('${p.selector||''}')).toBeVisible();`); break;
+      case 'assert_text':    lines.push(`  await expect(page.locator('${p.selector||''}')).toHaveText('${p.expected||''}');`); break;
+      case 'assert_url':     lines.push(`  expect(page.url()).toContain('${p.selector||''}');`); break;
+      case 'wait_visible':   lines.push(`  await page.waitForSelector('${p.selector||''}');`); break;
+      case 'wait_ms':        lines.push(`  await page.waitForTimeout(${p.ms||1000});`); break;
+      case 'wait_network':   lines.push(`  await page.waitForLoadState('networkidle');`); break;
+      case 'screenshot':     lines.push(`  await page.screenshot({ path: '${p.name||'screenshot'}.png' });`); break;
+      case 'set_variable':   lines.push(`  const ${p.varName||'var'} = ${p.value||"''"};`); break;
+      case 'api_get':        lines.push(`  const ${p.storeAs||'res'} = await page.request.get('${p.url||''}');`); break;
+      case 'api_post':       lines.push(`  const res = await page.request.post('${p.url||''}', { data: ${p.body||'{}'} });`); break;
+      default:               lines.push(`  // ${step.type}`);
+    }
+  });
+  lines.push(`});`);
+
+  const code = lines.join('\n');
+  const w = window.open('', '_blank', 'width=700,height=600');
+  w.document.write(`<!DOCTYPE html><html><head><title>Generated Code</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body { background:#0d0f12; color:#e8eaf0; margin:0; padding:0; font-family:'DM Mono',monospace; }
+    .header { background:#13161b; padding:14px 20px; border-bottom:1px solid #2a303c; display:flex; align-items:center; gap:10px; }
+    .title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:#00e5a0; }
+    .badge { background:rgba(0,229,160,0.1); color:#00e5a0; border:1px solid rgba(0,229,160,0.3); padding:2px 8px; border-radius:4px; font-size:11px; }
+    pre { padding:20px; line-height:1.7; font-size:13px; margin:0; white-space:pre-wrap; }
+    .copy { margin-left:auto; background:#00e5a0; color:#000; border:none; padding:6px 14px; border-radius:5px; font-weight:600; cursor:pointer; font-size:12px; }
+  </style></head><body>
+  <div class="header">
+    <span class="title">Generated Code</span>
+    <span class="badge">TypeScript · Playwright</span>
+    <button class="copy" onclick="navigator.clipboard.writeText(document.querySelector('pre').textContent).then(()=>this.textContent='Copied!')">Copy</button>
+  </div>
+  <pre>${code.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+  </body></html>`);
+}
+
+// ─── AI GENERATION ────────────────────────────────────────────────────────────
+async function generateSteps() {
+  const input = document.getElementById('aiInput');
+  const prompt = input.value.trim();
+  if (!prompt) return;
+
+  const btn = document.getElementById('aiSendBtn');
+  const thinking = document.getElementById('aiThinking');
+  btn.disabled = true;
+  thinking.style.display = 'flex';
+  input.value = '';
+
+  const systemPrompt = `You are a test automation expert. Convert the user's plain-English description into test steps.
+
+Respond ONLY with a JSON array of step objects. No explanation, no markdown, no backticks.
+
+Each step has:
+- type: one of: navigate, go_back, reload, click, type, clear, select, hover, upload, assert_visible, assert_text, assert_url, assert_count, wait_visible, wait_ms, wait_network, api_get, api_post, loop, if, set_variable, screenshot
+- params: object with relevant keys (url, selector, value, expected, count, ms, varName, storeAs, body, name, condition, times, file)
+
+Produce a realistic, practical test case. Use reasonable selector patterns like data-testid, CSS classes, or semantic selectors.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || '[]';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      const newSteps = parsed.map(s => ({
+        id: uid(),
+        type: s.type in ACTION_DEFS ? s.type : 'click',
+        params: s.params || {},
+        enabled: true
+      }));
+      steps.push(...newSteps);
+      renderSteps();
+      showToast(`✦ ${newSteps.length} step${newSteps.length!==1?'s':''} generated`);
+      setTimeout(() => {
+        document.getElementById('canvasScroll').scrollTop = 99999;
+      }, 50);
+    } else {
+      showToast('⚠ Could not parse steps. Try rephrasing.');
+    }
+  } catch(err) {
+    console.error(err);
+    showToast('⚠ AI generation failed — check connection');
+  } finally {
+    btn.disabled = false;
+    thinking.style.display = 'none';
+  }
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  clearTimeout(toastTimer);
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  toastTimer = setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2800);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+loadDemo();
+renderVars();
+</script>
+</body>
+</html>

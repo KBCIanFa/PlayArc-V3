@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlaywrightArc — Code Mode</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #070809;
+  --bg2:    #0c0e12;
+  --bg3:    #111418;
+  --bg4:    #171c22;
+  --bg5:    #1d2430;
+  --border: #1a2030;
+  --border2:#242e40;
+  --text:   #c9d4e8;
+  --text2:  #6b7d99;
+  --text3:  #364052;
+  --green:  #00e5a0;
+  --green2: #00b87d;
+  --gdim:   rgba(0,229,160,0.07);
+  --gglow:  rgba(0,229,160,0.14);
+  --blue:   #569cd6;
+  --blue2:  #4ec9b0;
+  --yellow: #dcdcaa;
+  --orange: #ce9178;
+  --purple: #c586c0;
+  --red:    #f44747;
+  --rdim:   rgba(244,71,71,0.1);
+  --comment:#6a9955;
+  --string: #ce9178;
+  --kw:     #569cd6;
+  --type:   #4ec9b0;
+  --fn:     #dcdcaa;
+  --num:    #b5cea8;
+  --r:5px; --r2:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{height:48px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 0 0 0;flex-shrink:0;z-index:100;}
+.logo{padding:0 16px;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--green);letter-spacing:-.5px;display:flex;align-items:center;gap:7px;border-right:1px solid var(--border);}
+.logo-icon{width:22px;height:22px;background:var(--green);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:900;}
+.menu-bar{display:flex;align-items:center;flex:1;padding:0 10px;gap:2px;}
+.menu-item{padding:6px 10px;border-radius:var(--r);font-size:12px;color:var(--text2);cursor:pointer;transition:all .12s;}
+.menu-item:hover{background:var(--bg3);color:var(--text);}
+.topbar-right{display:flex;align-items:center;gap:6px;padding:0 14px;margin-left:auto;}
+.btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--r);border:none;cursor:pointer;font-family:'Instrument Sans',sans-serif;font-size:12px;font-weight:500;transition:all .14s;white-space:nowrap;}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid transparent;}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-outline:hover{border-color:var(--border2);color:var(--text);}
+.btn-green{background:var(--green);color:#000;font-weight:700;}
+.btn-green:hover{background:var(--green2);}
+.btn-green:disabled{opacity:.4;cursor:not-allowed;}
+.btn-red{background:var(--rdim);color:var(--red);border:1px solid rgba(244,71,71,.2);}
+
+/* SOURCE INDICATOR */
+.source-badge{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid;transition:all .14s;}
+.src-nocode{background:var(--gdim);color:var(--green);border-color:rgba(0,229,160,.2);}
+.src-code{background:rgba(86,156,214,.1);color:var(--blue);border-color:rgba(86,156,214,.2);}
+.src-mixed{background:rgba(220,220,170,.08);color:var(--yellow);border-color:rgba(220,220,170,.2);}
+
+/* ACTIVITY BAR */
+.activity-bar{width:44px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:2px;flex-shrink:0;}
+.act-icon{width:36px;height:36px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--text3);transition:all .12s;position:relative;}
+.act-icon:hover{color:var(--text2);background:var(--bg3);}
+.act-icon.active{color:var(--text);background:var(--bg4);}
+.act-icon .badge{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--green);border-radius:50%;}
+
+/* MAIN */
+.main{flex:1;display:flex;overflow:hidden;}
+.editor-layout{flex:1;display:flex;overflow:hidden;}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transition:width .2s;}
+.sidebar.collapsed{width:0;overflow:hidden;}
+.sidebar-hdr{height:36px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sidebar-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;flex:1;}
+.sidebar-actions{display:flex;gap:2px;}
+.sact{width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:3px;color:var(--text3);cursor:pointer;font-size:13px;transition:all .12s;}
+.sact:hover{background:var(--bg4);color:var(--text2);}
+.tree-scroll{flex:1;overflow-y:auto;padding:4px 0;}
+
+/* FILE TREE */
+.tree-dir{user-select:none;}
+.tree-dir-hdr{display:flex;align-items:center;gap:5px;padding:4px 8px;cursor:pointer;color:var(--text2);font-size:12px;transition:background .1s;border-radius:3px;margin:0 4px;}
+.tree-dir-hdr:hover{background:var(--bg3);}
+.tree-caret{font-size:9px;color:var(--text3);width:10px;transition:transform .12s;flex-shrink:0;}
+.tree-dir.open>.tree-dir-hdr .tree-caret{transform:rotate(90deg);}
+.tree-dir-icon{font-size:13px;}
+.tree-dir-name{flex:1;font-size:12px;}
+.tree-children{padding-left:14px;display:none;}
+.tree-dir.open>.tree-children{display:block;}
+
+.tree-file{display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;color:var(--text2);font-size:12px;border-radius:3px;margin:0 4px;border-left:2px solid transparent;transition:all .1s;}
+.tree-file:hover{background:var(--bg3);color:var(--text);}
+.tree-file.active{background:var(--bg4);color:var(--text);border-left-color:var(--green);}
+.tree-file-icon{font-size:12px;flex-shrink:0;}
+.tree-file-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.git-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.git-M{background:var(--yellow);}
+.git-A{background:var(--green);}
+.git-D{background:var(--red);}
+.git-U{background:var(--blue);}
+
+/* EDITOR AREA */
+.editor-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* TABS */
+.tabs-bar{height:36px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;overflow-x:auto;flex-shrink:0;}
+.tabs-bar::-webkit-scrollbar{height:0;}
+.tab{display:flex;align-items:center;gap:7px;padding:0 14px;height:35px;cursor:pointer;color:var(--text2);font-size:12px;font-family:'DM Mono',monospace;border-right:1px solid var(--border);border-top:1px solid transparent;transition:all .1s;white-space:nowrap;flex-shrink:0;}
+.tab:hover{color:var(--text);background:var(--bg3);}
+.tab.active{background:var(--bg);color:var(--text);border-top:1px solid var(--green);}
+.tab-icon{font-size:12px;}
+.tab-name{font-size:11px;}
+.tab-close{font-size:13px;color:var(--text3);width:14px;height:14px;display:flex;align-items:center;justify-content:center;border-radius:2px;transition:all .1s;}
+.tab-close:hover{background:var(--bg5);color:var(--text);}
+.tab-modified{width:8px;height:8px;border-radius:50%;background:var(--yellow);flex-shrink:0;}
+
+/* STATUS BAR (bottom of editor, VS Code style) */
+.editor-status{height:22px;background:#007acc;display:flex;align-items:center;padding:0 10px;gap:14px;flex-shrink:0;}
+.status-item{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:4px;cursor:pointer;padding:0 4px;border-radius:3px;transition:background .1s;white-space:nowrap;}
+.status-item:hover{background:rgba(255,255,255,.12);}
+.status-item.green{color:#9effdb;}
+.status-item.yellow{color:#ffd166;}
+.status-item.red{color:#ff8080;}
+
+/* CODE PANE */
+.code-pane{flex:1;display:flex;overflow:hidden;}
+.line-numbers{width:52px;background:var(--bg);color:var(--text3);font-family:'DM Mono',monospace;font-size:13px;line-height:1.6;padding:14px 0;text-align:right;padding-right:12px;overflow:hidden;flex-shrink:0;user-select:none;border-right:1px solid var(--border);}
+.ln{display:block;height:20.8px;}
+.ln.active-ln{color:var(--text2);}
+.code-scroll{flex:1;overflow:auto;background:var(--bg);}
+.code-content{padding:14px 16px;font-family:'DM Mono',monospace;font-size:13px;line-height:1.6;white-space:pre;min-width:100%;display:inline-block;}
+
+/* SYNTAX */
+.kw{color:var(--kw);}
+.type{color:var(--type);}
+.fn{color:var(--fn);}
+.str{color:var(--string);}
+.num{color:var(--num);}
+.cmt{color:var(--comment);font-style:italic;}
+.op{color:var(--text2);}
+.punc{color:var(--text);}
+.prop{color:#9cdcfe;}
+.dec{color:var(--purple);}
+.tag-h{color:var(--green);}
+
+/* CURSOR LINE */
+.cursor-line{background:rgba(255,255,255,0.03);}
+
+/* GUTTER ICONS */
+.gutter-err{color:var(--red);}
+.gutter-warn{color:var(--yellow);}
+.squiggle-err{text-decoration:underline;text-decoration-color:var(--red);text-decoration-style:wavy;}
+.squiggle-warn{text-decoration:underline;text-decoration-color:var(--yellow);text-decoration-style:wavy;}
+
+/* MINIMAP */
+.minimap{width:80px;background:var(--bg2);border-left:1px solid var(--border);flex-shrink:0;overflow:hidden;opacity:.6;}
+.minimap-inner{padding:4px 2px;font-family:'DM Mono',monospace;font-size:2.5px;line-height:1.4;white-space:pre;color:var(--text3);word-break:break-all;}
+
+/* BOTTOM PANEL */
+.bottom-panel{height:200px;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;}
+.bottom-tabs{height:34px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;flex-shrink:0;}
+.btab{padding:6px 14px;font-size:11px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;font-family:'Syne',sans-serif;letter-spacing:.3px;text-transform:uppercase;display:flex;align-items:center;gap:5px;}
+.btab.active{color:var(--text);border-bottom-color:var(--green);}
+.btab:hover:not(.active){color:var(--text2);}
+.btab-badge{background:var(--bg4);color:var(--text3);font-size:10px;font-weight:700;padding:1px 5px;border-radius:10px;}
+.btab.active .btab-badge{background:var(--rdim);color:var(--red);}
+.bottom-body{flex:1;overflow-y:auto;}
+
+/* TERMINAL */
+.terminal{padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.7;}
+.term-line{display:flex;gap:8px;}
+.term-prompt{color:var(--green);flex-shrink:0;}
+.term-cmd{color:var(--text);}
+.term-out{color:var(--text2);padding-left:2px;}
+.term-pass{color:var(--green);}
+.term-fail{color:var(--red);}
+.term-warn{color:var(--yellow);}
+.term-dim{color:var(--text3);}
+.term-input-row{display:flex;align-items:center;gap:6px;padding:4px 14px 10px;}
+.term-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;}
+
+/* PROBLEMS */
+.prob-row{display:flex;align-items:flex-start;gap:10px;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.prob-row:hover{background:var(--bg3);}
+.prob-icon{font-size:13px;flex-shrink:0;margin-top:1px;}
+.prob-body{flex:1;}
+.prob-msg{font-size:12px;color:var(--text);font-weight:500;}
+.prob-loc{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-top:1px;}
+.prob-src{font-size:10px;color:var(--text3);background:var(--bg4);padding:1px 6px;border-radius:3px;flex-shrink:0;}
+
+/* OUTPUT */
+.output-line{font-family:'DM Mono',monospace;font-size:12px;padding:2px 14px;color:var(--text2);}
+.output-line.ok{color:var(--green);}
+.output-line.err{color:var(--red);}
+.output-line.dim{color:var(--text3);}
+
+/* RIGHT PANEL — OUTLINE */
+.right-panel{width:200px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.right-panel-hdr{height:36px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.right-panel-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;}
+.outline-item{display:flex;align-items:center;gap:6px;padding:5px 12px;cursor:pointer;color:var(--text2);font-size:12px;transition:background .1s;font-family:'DM Mono',monospace;}
+.outline-item:hover{background:var(--bg3);color:var(--text);}
+.outline-item.active{color:var(--green);}
+.outline-icon{font-size:11px;flex-shrink:0;}
+.outline-sub{padding-left:24px;}
+
+/* INTELLISENSE */
+.intellisense{position:fixed;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:4px 0;z-index:200;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,.5);display:none;}
+.is-item{display:flex;align-items:center;gap:8px;padding:5px 10px;cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);}
+.is-item:hover,.is-item.selected{background:var(--bg5);color:var(--text);}
+.is-icon{width:18px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.is-fn{background:var(--ydim);color:var(--yellow);}
+.is-prop{background:var(--bdim);color:var(--blue);}
+.is-kw{background:rgba(86,156,214,.12);color:var(--kw);}
+.is-snippet{background:var(--gdim);color:var(--green);}
+.is-label{flex:1;}
+.is-type{font-size:10px;color:var(--text3);}
+
+/* AI ASSIST */
+.ai-assist{position:fixed;background:var(--bg3);border:1px solid rgba(0,229,160,.2);border-radius:var(--r2);padding:12px 14px;z-index:200;max-width:400px;box-shadow:0 8px 30px rgba(0,0,0,.6);display:none;}
+.ai-assist-hdr{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.ai-assist-body{font-size:12px;color:var(--text2);line-height:1.65;white-space:pre-wrap;}
+.ai-spinner{width:12px;height:12px;border-radius:50%;border:2px solid rgba(0,229,160,.2);border-top-color:var(--green);animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* COMMAND PALETTE */
+.cmd-palette{position:fixed;top:80px;left:50%;transform:translateX(-50%);width:560px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:0 16px 48px rgba(0,0,0,.8);z-index:300;display:none;}
+.cmd-input{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:14px;padding:12px 16px;border-bottom:1px solid var(--border);}
+.cmd-input::placeholder{color:var(--text3);}
+.cmd-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;transition:background .1s;}
+.cmd-item:hover,.cmd-item.selected{background:var(--bg5);}
+.cmd-icon{font-size:14px;width:22px;text-align:center;flex-shrink:0;}
+.cmd-label{flex:1;font-size:13px;color:var(--text);}
+.cmd-kbd{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:var(--bg4);padding:2px 6px;border-radius:3px;}
+
+/* DIFF VIEW */
+.diff-line{font-family:'DM Mono',monospace;font-size:12px;padding:0 14px;display:flex;gap:10px;}
+.diff-add{background:rgba(0,229,160,.06);color:var(--green);}
+.diff-del{background:rgba(244,71,71,.06);color:var(--red);}
+.diff-ctx{color:var(--text3);}
+.diff-marker{color:var(--text3);flex-shrink:0;width:14px;}
+
+/* SCROLLBARS */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--border2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:30px;right:14px;z-index:500;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:9px 14px;font-size:12px;color:var(--text);box-shadow:0 8px 30px rgba(0,0,0,.6);animation:ti .2s ease-out;max-width:300px;}
+@keyframes ti{from{opacity:0;transform:translateY(6px);}to{opacity:1;}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo"><div class="logo-icon">▶</div>PlaywrightArc</div>
+  <div class="menu-bar">
+    <div class="menu-item" onclick="showToast('File menu')">File</div>
+    <div class="menu-item" onclick="showToast('Edit menu')">Edit</div>
+    <div class="menu-item" onclick="showCmdPalette()">View</div>
+    <div class="menu-item" onclick="showToast('Go menu')">Go</div>
+    <div class="menu-item" onclick="showToast('Run menu')">Run</div>
+    <div class="menu-item" onclick="showToast('Terminal menu')">Terminal</div>
+  </div>
+  <div class="topbar-right">
+    <div class="source-badge src-nocode" id="sourceBadge" onclick="cycleSource()" title="Source of truth — click to toggle">
+      ⊙ No-Code Source
+    </div>
+    <div style="width:1px;height:18px;background:var(--border);"></div>
+    <button class="btn btn-outline" onclick="showCmdPalette()">⌘P Command</button>
+    <button class="btn btn-outline" onclick="toggleAI()">✦ AI Assist</button>
+    <button class="btn btn-green" id="runBtn" onclick="runFile()">▶ Run File</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ACTIVITY BAR -->
+  <div class="activity-bar">
+    <div class="act-icon active" onclick="toggleSidebar()" title="Explorer">📁</div>
+    <div class="act-icon" onclick="showToast('Search across files')" title="Search">🔍</div>
+    <div class="act-icon" onclick="switchBottomTab(document.querySelector(\'.btab[data-tab=git]\'),\'git\')" title="Source Control">
+      ⎇
+      <div class="badge"></div>
+    </div>
+    <div class="act-icon" onclick="showToast('Extensions')" title="Extensions">⊞</div>
+    <div style="margin-top:auto;"></div>
+    <div class="act-icon" onclick="showToast('Settings')" title="Settings">⚙</div>
+  </div>
+
+  <!-- EDITOR LAYOUT -->
+  <div class="editor-layout">
+
+    <!-- SIDEBAR: FILE TREE -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-hdr">
+        <span class="sidebar-title">Explorer</span>
+        <div class="sidebar-actions">
+          <div class="sact" onclick="showToast('New file')">+</div>
+          <div class="sact" onclick="showToast('New folder')">📁</div>
+          <div class="sact" onclick="showToast('Collapse all')">⊟</div>
+        </div>
+      </div>
+      <div class="tree-scroll" id="fileTree"></div>
+    </div>
+
+    <!-- EDITOR + BOTTOM -->
+    <div class="editor-area">
+
+      <!-- TABS -->
+      <div class="tabs-bar" id="tabsBar"></div>
+
+      <!-- CODE PANE + RIGHT PANEL -->
+      <div style="flex:1;display:flex;overflow:hidden;">
+        <div class="code-pane" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+          <div style="flex:1;display:flex;overflow:hidden;" id="codePane">
+            <div class="line-numbers" id="lineNums"></div>
+            <div class="code-scroll" id="codeScroll">
+              <div class="code-content" id="codeContent" onclick="onCodeClick(event)"></div>
+            </div>
+            <div class="minimap" id="minimap">
+              <div class="minimap-inner" id="minimapInner"></div>
+            </div>
+          </div>
+
+          <!-- STATUS BAR -->
+          <div class="editor-status">
+            <div class="status-item green" id="stBranch">⎇ main</div>
+            <div class="status-item" id="stErrors" onclick="switchBottomTab(document.querySelector('[data-tab=problems]'),'problems')">✗ 1  ⚠ 2</div>
+            <div class="status-item" style="margin-left:auto;" id="stLang">TypeScript</div>
+            <div class="status-item" id="stPos">Ln 1, Col 1</div>
+            <div class="status-item">UTF-8</div>
+            <div class="status-item">Playwright</div>
+            <div class="status-item" id="stPretty" onclick="showToast('Formatted with Prettier')">⚙ Prettier</div>
+          </div>
+        </div>
+
+        <!-- OUTLINE -->
+        <div class="right-panel" id="rightPanel">
+          <div class="right-panel-hdr">
+            <span class="right-panel-title">Outline</span>
+          </div>
+          <div style="overflow-y:auto;flex:1;" id="outlineBody"></div>
+        </div>
+      </div>
+
+      <!-- BOTTOM PANEL -->
+      <div class="bottom-panel" id="bottomPanel">
+        <div class="bottom-tabs">
+          <div class="btab active" data-tab="terminal" onclick="switchBottomTab(this,'terminal')">Terminal</div>
+          <div class="btab" data-tab="problems" onclick="switchBottomTab(this,'problems')">Problems <span class="btab-badge">3</span></div>
+          <div class="btab" data-tab="output" onclick="switchBottomTab(this,'output')">Output</div>
+          <div class="btab" data-tab="git" onclick="switchBottomTab(this,'git')">Source Control</div>
+          <div class="btab" data-tab="diff" onclick="switchBottomTab(this,'diff')">Diff</div>
+          <button class="btn btn-ghost" style="margin-left:auto;padding:4px 8px;font-size:12px;" onclick="toggleBottom()">✕</button>
+        </div>
+        <div class="bottom-body" id="bottomBody"></div>
+        <div class="term-input-row" id="termInputRow">
+          <span class="term-prompt">$</span>
+          <input class="term-input" id="termInput" placeholder="npx playwright test…" onkeydown="handleTermInput(event)">
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /editor-layout -->
+</div><!-- /main -->
+
+<!-- COMMAND PALETTE -->
+<div class="cmd-palette" id="cmdPalette" onclick="if(event.target===this)hideCmdPalette()">
+  <input class="cmd-input" id="cmdInput" placeholder="Type a command or file name…" oninput="filterCmd(this.value)" onkeydown="cmdKey(event)">
+  <div id="cmdList"></div>
+</div>
+
+<!-- AI ASSIST PANEL -->
+<div class="ai-assist" id="aiAssist" style="bottom:230px;right:220px;">
+  <div class="ai-assist-hdr"><div class="ai-spinner" id="aiSpinner" style="display:none;"></div> ✦ AI Code Assistant</div>
+  <div class="ai-assist-body" id="aiBody">Select code or ask me anything about this test file…</div>
+  <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;" id="aiQuickBtns">
+    <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="aiAction('explain')">Explain</button>
+    <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="aiAction('improve')">Improve</button>
+    <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="aiAction('assertions')">Add Assertions</button>
+    <button class="btn btn-outline" style="padding:4px 10px;font-size:11px;" onclick="aiAction('fix')">Fix Issues</button>
+    <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px;margin-left:auto;" onclick="toggleAI()">×</button>
+  </div>
+</div>
+
+<!-- INTELLISENSE -->
+<div class="intellisense" id="intellisense"></div>
+
+<script>
+// ── FILE DATA ─────────────────────────────────────────────────────────────────
+const FILES = {
+  'tests/checkout/guest-checkout.spec.ts': {
+    lang:'ts', modified:true, gitStatus:'M',
+    source:'nocode',
+    content: `import { test, expect } from '@playwright/test';
+import { CheckoutPage } from '../pages/checkout.page';
+import { CartPage } from '../pages/cart.page';
+
+/**
+ * Guest Checkout — Add to Cart
+ * Source: No-Code Designer (auto-generated)
+ * Engine: Playwright · Suite: Checkout Flows
+ */
+test.describe('Guest Checkout', () => {
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto(process.env.BASE_URL + '/products');
+    await page.waitForLoadState('networkidle');
+  });
+
+  test('Add to cart and verify badge', async ({ page }) => {
+    // Step 1 — Navigate to products
+    await page.goto(process.env.BASE_URL + '/products');
+
+    // Step 2 — Wait for page load
+    await page.waitForLoadState('networkidle');
+
+    // Step 3 — Click first product card
+    await page.click('[data-testid="product-card"]:first-child');
+
+    // Step 4 — Verify product title visible
+    await expect(page.locator('.product-title')).toBeVisible();
+
+    // Step 5 — Add to cart
+    await page.click('button#add-to-cart');
+
+    // Step 6 — Verify cart badge count
+    await expect(page.locator('.cart-badge')).toHaveText('1');
+
+    // Step 7 — Screenshot checkpoint
+    await page.screenshot({ path: 'screenshots/cart-badge-verified.png' });
+  });
+
+  test('Checkout as guest user', async ({ page, request }) => {
+    const checkout = new CheckoutPage(page);
+    const cart = new CartPage(page);
+
+    await cart.addProduct('Blue Sneakers');
+    await cart.goToCheckout();
+
+    await checkout.fillGuestEmail('guest@example.com');
+    await checkout.fillShipping({
+      firstName: 'Jane',
+      lastName:  'Doe',
+      address:   '123 Main St',
+      city:      'Austin',
+      zip:       '78701',
+    });
+
+    await checkout.selectShipping('standard');
+    await checkout.placeOrder();
+
+    await expect(page.locator('.order-confirmation')).toBeVisible();
+    await expect(page.locator('.order-number')).toContainText('ORD-');
+  });
+
+});`,
+  },
+
+  'tests/checkout/coupon.spec.ts': {
+    lang:'ts', modified:false, gitStatus:'A',
+    source:'code',
+    content: `import { test, expect } from '@playwright/test';
+
+test.describe('Coupon Code Flow', () => {
+
+  test('Apply valid coupon', async ({ page }) => {
+    await page.goto(process.env.BASE_URL + '/cart');
+
+    // Add item first
+    await page.click('[data-testid="product-card"]:first-child');
+    await page.click('button#add-to-cart');
+    await page.click('a[href="/cart"]');
+
+    // Apply coupon
+    await page.fill('input#coupon-field', 'SAVE20');
+    await page.click('button#apply-coupon');
+
+    // Verify discount applied
+    // WARNING: Selector .coupon-feedback may be unstable (confidence 58%)
+    await expect(
+      page.locator('.coupon-feedback')
+    ).toHaveText('Coupon applied — 20% off', { timeout: 5000 });
+
+    const total = await page.locator('.order-total').textContent();
+    expect(parseFloat(total!.replace('$',''))).toBeLessThan(100);
+  });
+
+  test('Reject invalid coupon', async ({ page }) => {
+    await page.goto(process.env.BASE_URL + '/cart');
+    await page.fill('input#coupon-field', 'INVALIDCODE');
+    await page.click('button#apply-coupon');
+
+    await expect(page.locator('.coupon-error')).toBeVisible();
+  });
+
+});`,
+  },
+
+  'tests/auth/login.spec.ts': {
+    lang:'ts', modified:false, gitStatus:'',
+    source:'nocode',
+    content: `import { test, expect } from '@playwright/test';
+
+test.describe('Authentication', () => {
+
+  test('Login with valid credentials', async ({ page }) => {
+    await page.goto(process.env.BASE_URL + '/login');
+    await page.fill('input[name="email"]', process.env.TEST_USER!);
+    await page.fill('input[name="password"]', process.env.TEST_PASS!);
+    await page.click('button[type="submit"]');
+
+    await expect(page).toHaveURL(/\\/dashboard/);
+    await expect(page.locator('.user-avatar')).toBeVisible();
+  });
+
+  test('Login with invalid password', async ({ page }) => {
+    await page.goto(process.env.BASE_URL + '/login');
+    await page.fill('input[name="email"]', 'user@example.com');
+    await page.fill('input[name="password"]', 'wrongpassword');
+    await page.click('button[type="submit"]');
+
+    await expect(page.locator('.error-message')).toBeVisible();
+    await expect(page.locator('.error-message')).toContainText('Invalid credentials');
+  });
+
+});`,
+  },
+
+  'tests/pages/checkout.page.ts': {
+    lang:'ts', modified:false, gitStatus:'A',
+    source:'code',
+    content: `import { Page } from '@playwright/test';
+
+interface ShippingInfo {
+  firstName: string;
+  lastName:  string;
+  address:   string;
+  city:      string;
+  zip:       string;
+}
+
+export class CheckoutPage {
+  constructor(private page: Page) {}
+
+  async fillGuestEmail(email: string) {
+    await this.page.fill('input[name="email"]', email);
+  }
+
+  async fillShipping(info: ShippingInfo) {
+    await this.page.fill('[name="firstName"]', info.firstName);
+    await this.page.fill('[name="lastName"]',  info.lastName);
+    await this.page.fill('[name="address"]',   info.address);
+    await this.page.fill('[name="city"]',      info.city);
+    await this.page.fill('[name="zip"]',       info.zip);
+  }
+
+  async selectShipping(method: 'standard' | 'express') {
+    await this.page.click(\`[data-shipping="\${method}"]\`);
+  }
+
+  async placeOrder() {
+    await this.page.click('button#place-order');
+    await this.page.waitForLoadState('networkidle');
+  }
+}`,
+  },
+
+  'playwright.config.ts': {
+    lang:'ts', modified:false, gitStatus:'',
+    source:'code',
+    content: `import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests',
+  timeout: 30_000,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 4 : undefined,
+  reporter: [
+    ['html', { outputFolder: 'playwright-report' }],
+    ['json', { outputFile: 'results.json' }],
+  ],
+  use: {
+    baseURL: process.env.BASE_URL ?? 'http://localhost:3000',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+  },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox',  use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit',   use: { ...devices['Desktop Safari'] } },
+  ],
+});`,
+  },
+};
+
+const TREE = [
+  { type:'dir', name:'tests', open:true, children:[
+    { type:'dir', name:'checkout', open:true, children:[
+      { type:'file', name:'guest-checkout.spec.ts', path:'tests/checkout/guest-checkout.spec.ts', icon:'🧪' },
+      { type:'file', name:'coupon.spec.ts', path:'tests/checkout/coupon.spec.ts', icon:'🧪' },
+    ]},
+    { type:'dir', name:'auth', open:true, children:[
+      { type:'file', name:'login.spec.ts', path:'tests/auth/login.spec.ts', icon:'🧪' },
+    ]},
+    { type:'dir', name:'pages', open:true, children:[
+      { type:'file', name:'checkout.page.ts', path:'tests/pages/checkout.page.ts', icon:'📄' },
+    ]},
+  ]},
+  { type:'file', name:'playwright.config.ts', path:'playwright.config.ts', icon:'⚙' },
+];
+
+const COMMANDS = [
+  { icon:'▶', label:'Run Current File', kbd:'F5', action:()=>runFile() },
+  { icon:'▶', label:'Run All Tests', kbd:'Ctrl+Shift+F5', action:()=>showToast('Running all tests…') },
+  { icon:'⎇', label:'Git: Stage All Changes', kbd:'', action:()=>showToast('Changes staged') },
+  { icon:'⎇', label:'Git: Commit', kbd:'', action:()=>showToast('Opening commit dialog…') },
+  { icon:'↺', label:'Format Document', kbd:'Shift+Alt+F', action:()=>showToast('Document formatted with Prettier') },
+  { icon:'🔍', label:'Find in Files', kbd:'Ctrl+Shift+F', action:()=>showToast('Search panel opened') },
+  { icon:'📄', label:'New Test File', kbd:'', action:()=>showToast('New test file created') },
+  { icon:'✦', label:'AI: Explain This Code', kbd:'', action:()=>{ toggleAI(); aiAction('explain'); }},
+  { icon:'✦', label:'AI: Generate Assertions', kbd:'', action:()=>{ toggleAI(); aiAction('assertions'); }},
+  { icon:'✦', label:'AI: Fix Issues', kbd:'', action:()=>{ toggleAI(); aiAction('fix'); }},
+  { icon:'⊙', label:'Toggle No-Code View', kbd:'', action:()=>showToast('Opening No-Code designer…') },
+  { icon:'💾', label:'Save All', kbd:'Ctrl+K S', action:()=>showToast('All files saved') },
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let activeFile = 'tests/checkout/guest-checkout.spec.ts';
+let openTabs = ['tests/checkout/guest-checkout.spec.ts','tests/checkout/coupon.spec.ts','playwright.config.ts'];
+let activeLine = 1;
+let bottomTab = 'terminal';
+let sidebarOpen = true;
+let aiOpen = false;
+let termHistory = [];
+let cmdSelected = 0;
+
+// ── RENDER FILE TREE ──────────────────────────────────────────────────────────
+function renderTree() {
+  document.getElementById('fileTree').innerHTML = renderTreeNodes(TREE, 0);
+}
+
+function renderTreeNodes(nodes, depth) {
+  return nodes.map(n => {
+    if (n.type === 'dir') {
+      const openCls = n.open ? 'open' : '';
+      return `<div class="tree-dir ${openCls}">
+        <div class="tree-dir-hdr" onclick="toggleDir(this,${JSON.stringify(n.name)})">
+          <span class="tree-caret">▶</span>
+          <span class="tree-dir-icon">${n.open ? '📂' : '📁'}</span>
+          <span class="tree-dir-name">${n.name}</span>
+        </div>
+        <div class="tree-children">${renderTreeNodes(n.children||[], depth+1)}</div>
+      </div>`;
+    } else {
+      const f = FILES[n.path] || {};
+      const gitCls = f.gitStatus ? `git-${f.gitStatus}` : '';
+      const isActive = n.path === activeFile;
+      return `<div class="tree-file ${isActive?'active':''}" onclick="openFile('${n.path}')">
+        <span class="tree-file-icon">${n.icon||'📄'}</span>
+        <span class="tree-file-name" style="${f.gitStatus?`color:var(--text);`:''}">${n.name}</span>
+        ${f.gitStatus ? `<span class="git-dot git-${f.gitStatus}"></span>` : ''}
+      </div>`;
+    }
+  }).join('');
+}
+
+function toggleDir(hdr, name) {
+  const dir = hdr.parentElement;
+  dir.classList.toggle('open');
+  const icon = hdr.querySelector('.tree-dir-icon');
+  icon.textContent = dir.classList.contains('open') ? '📂' : '📁';
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function renderTabs() {
+  document.getElementById('tabsBar').innerHTML = openTabs.map(path => {
+    const parts = path.split('/');
+    const name = parts[parts.length-1];
+    const f = FILES[path] || {};
+    const isActive = path === activeFile;
+    return `<div class="tab ${isActive?'active':''}" onclick="openFile('${path}')">
+      <span class="tab-icon">🧪</span>
+      <span class="tab-name">${name}</span>
+      ${f.modified ? '<span class="tab-modified"></span>' : ''}
+      <span class="tab-close" onclick="event.stopPropagation();closeTab('${path}')">×</span>
+    </div>`;
+  }).join('');
+}
+
+function closeTab(path) {
+  openTabs = openTabs.filter(p => p !== path);
+  if (activeFile === path) activeFile = openTabs[openTabs.length-1] || null;
+  renderTabs();
+  if (activeFile) renderEditor();
+}
+
+// ── EDITOR ────────────────────────────────────────────────────────────────────
+function openFile(path) {
+  activeFile = path;
+  if (!openTabs.includes(path)) openTabs.push(path);
+  renderTabs();
+  renderEditor();
+  renderTree();
+  renderOutline();
+  updateSourceBadge();
+}
+
+function renderEditor() {
+  const f = FILES[activeFile];
+  if (!f) return;
+
+  const lines = f.content.split('\n');
+  const highlighted = highlightTS(f.content);
+  const hLines = highlighted.split('\n');
+
+  // Line numbers
+  document.getElementById('lineNums').innerHTML = hLines.map((_, i) =>
+    `<span class="ln ${i+1===activeLine?'active-ln':''}">${i+1}</span>`
+  ).join('');
+
+  // Code content
+  document.getElementById('codeContent').innerHTML = hLines.map((l, i) =>
+    `<span class="${i+1===activeLine?'cursor-line':''}" data-line="${i+1}">${l||' '}</span>`
+  ).join('\n');
+
+  // Minimap
+  document.getElementById('minimapInner').textContent = f.content.slice(0,2000);
+
+  updateStatusBar();
+}
+
+// ── SYNTAX HIGHLIGHT (TypeScript) ─────────────────────────────────────────────
+function highlightTS(code) {
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  return code.split('\n').map(line => {
+    const e = esc(line);
+
+    // Comments
+    if (/^\s*\/\//.test(line)) return `<span class="cmt">${e}</span>`;
+    if (/^\s*\*/.test(line)) return `<span class="cmt">${e}</span>`;
+    if (/^\s*\/\*/.test(line)) return `<span class="cmt">${e}</span>`;
+
+    let out = e;
+
+    // Strings (simple)
+    out = out.replace(/(&#x27;[^&#]*&#x27;|&quot;[^&]*&quot;|`[^`]*`)/g, m => `<span class="str">${m}</span>`);
+
+    // Keywords
+    const kws = ['import','from','export','default','const','let','var','async','await','return','if','else','for','of','in','new','this','class','extends','interface','type','implements','readonly'];
+    kws.forEach(k => {
+      out = out.replace(new RegExp(`\\b(${k})\\b`, 'g'), `<span class="kw">$1</span>`);
+    });
+
+    // Types
+    const types = ['Page','test','expect','string','number','boolean','void','Promise','Array','Record'];
+    types.forEach(t => {
+      out = out.replace(new RegExp(`\\b(${t})\\b`, 'g'), `<span class="type">$1</span>`);
+    });
+
+    // Functions/methods
+    out = out.replace(/(\w+)(?=\s*\()/g, (m,fn) => {
+      if (['if','for','while','switch','catch'].includes(fn)) return m;
+      return `<span class="fn">${fn}</span>`;
+    });
+
+    // Numbers
+    out = out.replace(/\b(\d+[\d_]*)\b/g, '<span class="num">$1</span>');
+
+    // Decorators
+    out = out.replace(/@(\w+)/g, '<span class="dec">@$1</span>');
+
+    // Properties (after dot)
+    out = out.replace(/\.(\w+)/g, '.<span class="prop">$1</span>');
+
+    return out;
+  }).join('\n');
+}
+
+// ── OUTLINE ───────────────────────────────────────────────────────────────────
+function renderOutline() {
+  const f = FILES[activeFile];
+  if (!f) return;
+  const items = [];
+  const lines = f.content.split('\n');
+  lines.forEach((l, i) => {
+    if (/test\.describe\(/.test(l)) items.push({ icon:'◈', label: l.match(/'([^']+)'/)?.[1] || 'describe', line:i+1, indent:0 });
+    else if (/^\s+test\(/.test(l)) items.push({ icon:'▷', label: l.match(/'([^']+)'/)?.[1] || 'test', line:i+1, indent:1 });
+    else if (/export\s+(class|function)/.test(l)) items.push({ icon:'⬡', label: l.match(/(?:class|function)\s+(\w+)/)?.[1] || 'export', line:i+1, indent:0 });
+    else if (/^\s+async\s+\w+\s*\(/.test(l)) items.push({ icon:'⊙', label: l.match(/async\s+(\w+)/)?.[1] || 'method', line:i+1, indent:1 });
+  });
+
+  document.getElementById('outlineBody').innerHTML = items.map(item =>
+    `<div class="outline-item ${item.indent?'outline-sub':''}" onclick="goToLine(${item.line})">
+      <span class="outline-icon">${item.icon}</span>
+      <span>${item.label}</span>
+    </div>`
+  ).join('');
+}
+
+function goToLine(n) {
+  activeLine = n;
+  renderEditor();
+  document.getElementById('stPos').textContent = `Ln ${n}, Col 1`;
+}
+
+function onCodeClick(e) {
+  const span = e.target.closest('[data-line]');
+  if (span) goToLine(parseInt(span.dataset.line));
+}
+
+// ── STATUS BAR ────────────────────────────────────────────────────────────────
+function updateStatusBar() {
+  const f = FILES[activeFile] || {};
+  document.getElementById('stLang').textContent = 'TypeScript';
+  document.getElementById('stBranch').textContent = '⎇ main' + (f.gitStatus ? ' ●' : '');
+}
+
+function updateSourceBadge() {
+  const f = FILES[activeFile];
+  if (!f) return;
+  const badge = document.getElementById('sourceBadge');
+  if (f.source === 'nocode') { badge.className='source-badge src-nocode'; badge.textContent='⊙ No-Code Source'; }
+  else if (f.source === 'code') { badge.className='source-badge src-code'; badge.textContent='⌨ Code Authored'; }
+  else { badge.className='source-badge src-mixed'; badge.textContent='⇌ Mixed Source'; }
+}
+
+let srcCycle = ['nocode','code','mixed'];
+let srcIdx = 0;
+function cycleSource() {
+  const f = FILES[activeFile]; if (!f) return;
+  srcIdx = (srcIdx+1)%3;
+  f.source = srcCycle[srcIdx];
+  updateSourceBadge();
+  showToast(`Source of truth: ${f.source}`);
+}
+
+// ── BOTTOM PANEL ──────────────────────────────────────────────────────────────
+function switchBottomTab(el, tab) {
+  document.querySelectorAll('.btab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  bottomTab = tab;
+  document.getElementById('termInputRow').style.display = tab === 'terminal' ? '' : 'none';
+  renderBottomPanel();
+}
+
+function renderBottomPanel() {
+  const body = document.getElementById('bottomBody');
+
+  if (bottomTab === 'terminal') {
+    body.innerHTML = `
+      <div class="terminal">
+        <div class="term-line"><span class="term-prompt">$</span><span class="term-cmd"> npx playwright test --project=chromium</span></div>
+        <div class="term-line term-dim"><span class="term-out">Running 13 tests using 4 workers</span></div>
+        <div class="term-line"><span class="term-pass">  ✓  [chromium] › auth/login.spec.ts:7:3 › Login with valid credentials (1.2s)</span></div>
+        <div class="term-line"><span class="term-pass">  ✓  [chromium] › auth/login.spec.ts:19:3 › Login with invalid password (0.8s)</span></div>
+        <div class="term-line"><span class="term-pass">  ✓  [chromium] › checkout/guest-checkout.spec.ts:21:3 › Add to cart and verify badge (2.1s)</span></div>
+        <div class="term-line"><span class="term-fail">  ✗  [chromium] › checkout/coupon.spec.ts:8:3 › Apply valid coupon (30.1s)</span></div>
+        <div class="term-line term-dim"><span class="term-out">     Error: Timeout 5000ms exceeded waiting for expect(locator).toHaveText('Coupon applied — 20% off')</span></div>
+        <div class="term-line term-dim"><span class="term-out">       at coupon.spec.ts:23:5</span></div>
+        <div class="term-line"><span class="term-pass">  ✓  [chromium] › checkout/coupon.spec.ts:30:3 › Reject invalid coupon (0.9s)</span></div>
+        <div class="term-line term-dim"><span class="term-out"></span></div>
+        <div class="term-line"><span class="term-warn">  12 passed, 1 failed (38.4s)</span></div>
+        <div class="term-line term-dim"><span class="term-out">  HTML report: playwright-report/index.html</span></div>
+      </div>`;
+  }
+
+  else if (bottomTab === 'problems') {
+    body.innerHTML = [
+      { icon:'✗', cls:'gutter-err', msg:'Timeout 5000ms exceeded — selector .coupon-feedback unstable', file:'coupon.spec.ts', loc:'23:5', src:'Playwright' },
+      { icon:'⚠', cls:'gutter-warn', msg:'Selector .coupon-feedback has low locator confidence (58%)', file:'coupon.spec.ts', loc:'22:5', src:'PlaywrightArc' },
+      { icon:'⚠', cls:'gutter-warn', msg:'Thread.sleep() pattern detected — use waitForSelector instead', file:'coupon.spec.ts', loc:'18:1', src:'PlaywrightArc' },
+    ].map(p => `<div class="prob-row" onclick="showToast('Jumping to ${p.file}:${p.loc}')">
+      <span class="prob-icon ${p.cls}">${p.icon}</span>
+      <div class="prob-body">
+        <div class="prob-msg">${p.msg}</div>
+        <div class="prob-loc">${p.file} · ${p.loc}</div>
+      </div>
+      <span class="prob-src">${p.src}</span>
+    </div>`).join('');
+  }
+
+  else if (bottomTab === 'output') {
+    body.innerHTML = [
+      { cls:'dim', text:'[PlaywrightArc] Starting Playwright v1.42.0' },
+      { cls:'',    text:'[chromium] Starting 4 workers…' },
+      { cls:'ok',  text:'[chromium] ✓ auth/login.spec.ts — 2 tests passed' },
+      { cls:'ok',  text:'[chromium] ✓ checkout/guest-checkout.spec.ts — 2 tests passed' },
+      { cls:'err', text:'[chromium] ✗ checkout/coupon.spec.ts — 1 test failed, 1 passed' },
+      { cls:'dim', text:'[PlaywrightArc] Report saved: playwright-report/index.html' },
+    ].map(l => `<div class="output-line ${l.cls}">${l.text}</div>`).join('');
+  }
+
+  else if (bottomTab === 'git') {
+    body.innerHTML = `<div style="padding:12px 14px;">
+      <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px;">Changes</div>
+      ${[
+        { status:'M', name:'tests/checkout/guest-checkout.spec.ts', staged:false },
+        { status:'A', name:'tests/checkout/coupon.spec.ts', staged:true },
+        { status:'A', name:'tests/pages/checkout.page.ts', staged:true },
+      ].map(f => `<div class="prob-row" onclick="switchBottomTab(document.querySelector('[data-tab=diff]'),'diff')">
+        <span class="git-dot git-${f.status}" style="margin-top:2px;"></span>
+        <div class="prob-body">
+          <div class="prob-msg" style="font-family:'DM Mono',monospace;font-size:12px;">${f.name}</div>
+          <div class="prob-loc">${f.staged?'Staged':'Unstaged'}</div>
+        </div>
+        <span class="prob-src git-${f.status}" style="color:var(--text3);">${f.status}</span>
+      </div>`).join('')}
+      <div style="padding:10px 0 0;display:flex;gap:8px;">
+        <input class="param-input" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:6px 10px;font-family:'Instrument Sans',sans-serif;font-size:12px;outline:none;" placeholder="Commit message…" id="commitMsg">
+        <button class="btn btn-outline" onclick="showToast('✓ Committed: '+document.getElementById('commitMsg').value)">Commit</button>
+        <button class="btn btn-ghost" onclick="showToast('Pushing to origin/main…')">Push</button>
+      </div>
+    </div>`;
+  }
+
+  else if (bottomTab === 'diff') {
+    const lines = [
+      { type:'ctx', ln:'24', text:'    await page.click(\'button#apply-coupon\');' },
+      { type:'ctx', ln:'25', text:'' },
+      { type:'del', ln:'26', text:'-   await expect(page.locator(\'.coupon-feedback\')).toHaveText(\'Coupon applied — 20% off\', { timeout: 5000 });' },
+      { type:'add', ln:'',   text:'+   await page.waitForSelector(\'.coupon-feedback\', { timeout: 10000 });' },
+      { type:'add', ln:'27', text:'+   await expect(page.locator(\'.coupon-feedback\')).toHaveText(\'Coupon applied — 20% off\');' },
+      { type:'ctx', ln:'28', text:'' },
+      { type:'ctx', ln:'29', text:'    const total = await page.locator(\'.order-total\').textContent();' },
+    ];
+    body.innerHTML = `<div style="padding:8px 0;">
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);padding:6px 14px;border-bottom:1px solid var(--border);">tests/checkout/coupon.spec.ts</div>
+      ${lines.map(l => `<div class="diff-line diff-${l.type}">
+        <span class="diff-marker">${l.type==='del'?'−':l.type==='add'?'+':' '}</span>
+        <span>${l.text}</span>
+      </div>`).join('')}
+    </div>`;
+  }
+}
+
+function toggleBottom() {
+  const panel = document.getElementById('bottomPanel');
+  panel.style.display = panel.style.display === 'none' ? '' : 'none';
+}
+
+// ── TERMINAL INPUT ────────────────────────────────────────────────────────────
+function handleTermInput(e) {
+  if (e.key !== 'Enter') return;
+  const input = document.getElementById('termInput');
+  const cmd = input.value.trim();
+  if (!cmd) return;
+  input.value = '';
+  if (cmd.includes('playwright test')) runFile();
+  else showToast(`$ ${cmd}`);
+}
+
+// ── RUN FILE ──────────────────────────────────────────────────────────────────
+function runFile() {
+  switchBottomTab(document.querySelector('[data-tab=terminal]'), 'terminal');
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true; btn.textContent = '⟳ Running…';
+  setTimeout(() => { btn.disabled = false; btn.textContent = '▶ Run File'; showToast('✓ Run complete — see terminal'); }, 3000);
+}
+
+// ── COMMAND PALETTE ───────────────────────────────────────────────────────────
+function showCmdPalette() {
+  const pal = document.getElementById('cmdPalette');
+  pal.style.display = '';
+  document.getElementById('cmdInput').value = '';
+  filterCmd('');
+  document.getElementById('cmdInput').focus();
+  cmdSelected = 0;
+}
+
+function hideCmdPalette() {
+  document.getElementById('cmdPalette').style.display = 'none';
+}
+
+function filterCmd(val) {
+  const items = val ? COMMANDS.filter(c => c.label.toLowerCase().includes(val.toLowerCase())) : COMMANDS;
+  cmdSelected = 0;
+  document.getElementById('cmdList').innerHTML = items.map((c,i) =>
+    `<div class="cmd-item ${i===0?'selected':''}" onclick="runCmd(${COMMANDS.indexOf(c)})">
+      <span class="cmd-icon">${c.icon}</span>
+      <span class="cmd-label">${c.label}</span>
+      ${c.kbd?`<span class="cmd-kbd">${c.kbd}</span>`:''}
+    </div>`
+  ).join('');
+}
+
+function cmdKey(e) {
+  if (e.key === 'Escape') { hideCmdPalette(); return; }
+  if (e.key === 'Enter') {
+    const items = document.querySelectorAll('.cmd-item');
+    if (items[cmdSelected]) items[cmdSelected].click();
+    hideCmdPalette();
+  }
+  if (e.key === 'ArrowDown') { cmdSelected = Math.min(cmdSelected+1, document.querySelectorAll('.cmd-item').length-1); highlightCmd(); }
+  if (e.key === 'ArrowUp') { cmdSelected = Math.max(cmdSelected-1, 0); highlightCmd(); }
+}
+
+function highlightCmd() {
+  document.querySelectorAll('.cmd-item').forEach((el,i) => el.classList.toggle('selected', i===cmdSelected));
+}
+
+function runCmd(idx) {
+  hideCmdPalette();
+  COMMANDS[idx]?.action?.();
+}
+
+// ── SIDEBAR TOGGLE ────────────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  sidebarOpen = !sidebarOpen;
+  sb.classList.toggle('collapsed', !sidebarOpen);
+}
+
+// ── AI ASSIST ─────────────────────────────────────────────────────────────────
+function toggleAI() {
+  aiOpen = !aiOpen;
+  document.getElementById('aiAssist').style.display = aiOpen ? '' : 'none';
+}
+
+async function aiAction(type) {
+  if (!aiOpen) { aiOpen = true; document.getElementById('aiAssist').style.display = ''; }
+  const spinner = document.getElementById('aiSpinner');
+  const body = document.getElementById('aiBody');
+  spinner.style.display = '';
+  body.textContent = 'Analyzing…';
+
+  const f = FILES[activeFile] || {};
+  const prompts = {
+    explain:    `Briefly explain what this Playwright test file does. 3-4 sentences max:\n\n${f.content?.slice(0,800)||''}`,
+    improve:    `Give 3 specific improvements for this Playwright test code. Be concise and technical:\n\n${f.content?.slice(0,800)||''}`,
+    assertions: `Suggest 3 additional assertions I should add to make this Playwright test more thorough. Show code snippets:\n\n${f.content?.slice(0,800)||''}`,
+    fix:        `This test has a known issue: .coupon-feedback selector times out at 5000ms. Suggest the exact fix with code. Be concise:\n\n${f.content?.slice(0,800)||''}`,
+  };
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:350,
+        messages:[{role:'user', content: prompts[type] || prompts.explain }]
+      })
+    });
+    const data = await resp.json();
+    body.textContent = data.content?.[0]?.text || 'No response';
+  } catch(err) {
+    const fallbacks = {
+      explain:'This test file covers guest checkout flows using Playwright. It navigates to the products page, adds an item to the cart, verifies the badge count, and runs a full guest checkout with shipping details. Uses the Page Object Model pattern.',
+      improve:'→ Use data-testid selectors instead of CSS classes for stability\n→ Add visual regression screenshot comparison\n→ Extract magic strings (URLs, emails) to fixtures/constants file',
+      assertions:'→ expect(page.locator(\'.cart-subtotal\')).toContainText(\'$\')\n→ expect(page).toHaveURL(/checkout/confirm/)\n→ expect(page.locator(\'.order-number\')).toBeVisible()',
+      fix:'Replace the unstable assertion with a two-step approach:\n\nawait page.waitForSelector(\'.coupon-feedback\', { timeout: 10000 });\nawait expect(page.locator(\'.coupon-feedback\')).toHaveText(\'Coupon applied — 20% off\');\n\nAlso add network interception to wait for the coupon API response before asserting.',
+    };
+    body.textContent = fallbacks[type] || fallbacks.explain;
+  }
+  spinner.style.display = 'none';
+}
+
+// ── KEYBOARD SHORTCUTS ────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key === 'p') { e.preventDefault(); showCmdPalette(); }
+  if ((e.ctrlKey||e.metaKey) && e.key === 's') { e.preventDefault(); showToast('💾 Saved'); }
+  if (e.key === 'Escape') { hideCmdPalette(); }
+  if (e.key === 'F5') runFile();
+});
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let toastT;
+function showToast(msg) {
+  clearTimeout(toastT);
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className='toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.opacity='1';
+  toastT = setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t?.remove(),300); }, 2600);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderTree();
+renderTabs();
+renderEditor();
+renderOutline();
+renderBottomPanel();
+updateSourceBadge();
+</script>
+</body>
+</html>

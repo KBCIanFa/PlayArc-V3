@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlaywrightArc — CI/CD Integration</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #08090c;
+  --bg2:    #0d1018;
+  --bg3:    #131720;
+  --bg4:    #192030;
+  --bg5:    #1f2840;
+  --border: #1c2438;
+  --border2:#253050;
+  --text:   #cdd8ee;
+  --text2:  #677d9e;
+  --text3:  #334060;
+  --green:  #00e5a0;
+  --green2: #00b87d;
+  --gdim:   rgba(0,229,160,0.07);
+  --gglow:  rgba(0,229,160,0.13);
+  --blue:   #4da8ff;
+  --bdim:   rgba(77,168,255,0.09);
+  --orange: #ff9d4a;
+  --odim:   rgba(255,157,74,0.09);
+  --red:    #ff3d5a;
+  --rdim:   rgba(255,61,90,0.09);
+  --yellow: #ffc947;
+  --ydim:   rgba(255,201,71,0.09);
+  --purple: #b06aff;
+  --pdim:   rgba(176,106,255,0.09);
+  --r:5px; --r2:9px; --r3:13px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{height:48px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--green);letter-spacing:-.5px;display:flex;align-items:center;gap:7px;}
+.logo-icon{width:22px;height:22px;background:var(--green);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:900;}
+.sep{width:1px;height:18px;background:var(--border2);}
+.page-label{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text2);}
+.page-label strong{color:var(--text);}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+
+.btn{display:flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r);border:none;cursor:pointer;font-family:'Instrument Sans',sans-serif;font-size:12px;font-weight:500;transition:all .14s;white-space:nowrap;}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid transparent;}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-outline:hover{border-color:var(--border2);color:var(--text);}
+.btn-green{background:var(--green);color:#000;font-weight:700;}
+.btn-green:hover{background:var(--green2);}
+.btn-green:disabled{opacity:.4;cursor:not-allowed;}
+.btn-blue{background:var(--bdim);color:var(--blue);border:1px solid rgba(77,168,255,.2);}
+.btn-blue:hover{background:rgba(77,168,255,.16);}
+.btn-sm{padding:4px 10px;font-size:11px;}
+
+/* LAYOUT */
+.layout{flex:1;display:flex;overflow:hidden;}
+
+/* LEFT NAV */
+.left-nav{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.nav-section{padding:12px 0 4px;}
+.nav-label{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;padding:0 14px 6px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;color:var(--text2);font-size:12px;font-weight:500;border-left:2px solid transparent;transition:all .12s;}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:var(--gdim);color:var(--green);border-left-color:var(--green);}
+.nav-item .icon{font-size:14px;width:20px;text-align:center;}
+.nav-badge{margin-left:auto;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;}
+.nb-ok{background:var(--gdim);color:var(--green);}
+.nb-warn{background:var(--ydim);color:var(--yellow);}
+.nb-err{background:var(--rdim);color:var(--red);}
+.nb-off{background:var(--bg4);color:var(--text3);}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;}
+.view{display:none;padding:28px 32px;}
+.view.active{display:block;}
+
+/* SECTION */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.sec-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);}
+.sec-sub{font-size:12px;color:var(--text3);margin-top:3px;}
+
+/* INTEGRATION CARDS */
+.int-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:28px;}
+.int-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);padding:20px;transition:all .14s;position:relative;overflow:hidden;}
+.int-card:hover{border-color:var(--border2);}
+.int-card.connected{border-color:rgba(0,229,160,.25);}
+.int-card-hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.int-logo{width:40px;height:40px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;font-family:'DM Mono',monospace;font-weight:800;}
+.int-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
+.int-desc{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.5;}
+.conn-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;}
+.cb-on{background:var(--gdim);color:var(--green);}
+.cb-off{background:var(--bg4);color:var(--text3);}
+.int-stats{display:flex;gap:14px;margin-bottom:14px;}
+.int-stat{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;}
+.int-stat strong{color:var(--text2);}
+.int-actions{display:flex;gap:6px;}
+
+/* STATUS DOT */
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sdot-green{background:var(--green);}
+.sdot-yellow{background:var(--yellow);animation:pulse-dot 2s infinite;}
+.sdot-red{background:var(--red);}
+.sdot-grey{background:var(--text3);}
+@keyframes pulse-dot{0%,100%{opacity:.4;}50%{opacity:1;}}
+
+/* CODE BLOCK */
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:14px;}
+.code-block-hdr{background:var(--bg3);padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.code-block-title{font-size:11px;font-weight:700;color:var(--text2);font-family:'Syne',sans-serif;}
+.code-block-lang{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--bg4);color:var(--text3);}
+.copy-btn{margin-left:auto;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:3px 8px;border-radius:4px;font-family:'Instrument Sans',sans-serif;transition:all .12s;}
+.copy-btn:hover{background:var(--bg5);color:var(--text);}
+.code-body{padding:14px 16px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.75;overflow-x:auto;white-space:pre;}
+
+/* SYNTAX */
+.ck{color:#569cd6;} /* keyword */
+.cs{color:#ce9178;} /* string */
+.cc{color:#6a9955;font-style:italic;} /* comment */
+.cn{color:#b5cea8;} /* number */
+.cp{color:#9cdcfe;} /* property */
+.cf{color:#dcdcaa;} /* function/key */
+.ct{color:#4ec9b0;} /* type */
+.cv{color:#c586c0;} /* variable/special */
+
+/* PIPELINE BUILDER */
+.pipeline-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);overflow:hidden;margin-bottom:20px;}
+.pipeline-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.pipeline-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
+.pipeline-stages{display:flex;align-items:stretch;padding:20px 18px;gap:0;overflow-x:auto;}
+.pipeline-stage{display:flex;flex-direction:column;align-items:center;position:relative;min-width:120px;}
+.stage-connector{flex:1;height:2px;background:var(--border);position:absolute;top:20px;left:60px;right:-60px;z-index:0;}
+.stage-connector.done{background:var(--green);}
+.stage-connector.running{background:linear-gradient(90deg,var(--green),var(--blue));animation:flow 1.5s linear infinite;}
+@keyframes flow{0%{background-position:0% 0;}100%{background-position:200% 0;}}
+.stage-dot{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;position:relative;z-index:1;transition:all .2s;cursor:pointer;}
+.sd-done{background:var(--gdim);border:2px solid var(--green);color:var(--green);}
+.sd-running{background:var(--bdim);border:2px solid var(--blue);color:var(--blue);animation:pulse-dot 1s infinite;}
+.sd-pending{background:var(--bg4);border:2px solid var(--border2);color:var(--text3);}
+.sd-fail{background:var(--rdim);border:2px solid var(--red);color:var(--red);}
+.stage-label{font-size:11px;color:var(--text2);margin-top:8px;text-align:center;font-weight:500;}
+.stage-dur{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* RUN HISTORY */
+.run-table-hdr{display:grid;grid-template-columns:40px 1fr 120px 100px 100px 90px 120px;padding:8px 16px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;}
+.run-row{display:grid;grid-template-columns:40px 1fr 120px 100px 100px 90px 120px;padding:9px 16px;border-bottom:1px solid var(--border);align-items:center;cursor:pointer;transition:background .1s;}
+.run-row:hover{background:var(--bg3);}
+.run-row:last-child{border-bottom:none;}
+.run-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);}
+.run-branch{display:flex;align-items:center;gap:6px;}
+.run-branch-name{font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);}
+.run-commit{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);}
+.run-trigger{font-size:11px;color:var(--text3);}
+.run-dur{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);}
+.run-time{font-size:11px;color:var(--text3);}
+.status-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;}
+.sp-pass{background:var(--gdim);color:var(--green);}
+.sp-fail{background:var(--rdim);color:var(--red);}
+.sp-run{background:var(--bdim);color:var(--blue);}
+.sp-skip{background:var(--bg4);color:var(--text3);}
+
+/* WEBHOOK */
+.webhook-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:all .12s;}
+.webhook-item:hover{border-color:var(--border2);}
+.webhook-event{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;}
+.we-pass{background:var(--gdim);color:var(--green);}
+.we-fail{background:var(--rdim);color:var(--red);}
+.we-all{background:var(--bdim);color:var(--blue);}
+.webhook-url{font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.webhook-last{font-size:11px;color:var(--text3);white-space:nowrap;}
+.webhook-status{width:8px;height:8px;border-radius:50%;}
+.ws-ok{background:var(--green);}
+.ws-err{background:var(--red);}
+
+/* RESULTS API */
+.endpoint-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:8px;}
+.ep-method{font-family:'DM Mono',monospace;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;min-width:34px;text-align:center;}
+.m-get{background:var(--gdim);color:var(--green);}
+.m-post{background:var(--bdim);color:var(--blue);}
+.ep-path{font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);flex:1;}
+.ep-desc{font-size:11px;color:var(--text3);}
+
+/* SCHEDULE */
+.schedule-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.cron-badge{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;background:var(--bg4);color:var(--text2);padding:4px 10px;border-radius:4px;min-width:130px;}
+.schedule-desc{flex:1;}
+.schedule-name{font-size:12px;color:var(--text);font-weight:500;}
+.schedule-next{font-size:11px;color:var(--text3);margin-top:2px;}
+
+/* AI */
+.ai-bar{padding:10px 16px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.ai-inner{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:7px 12px;transition:border-color .15s;}
+.ai-inner:focus-within{border-color:var(--green);box-shadow:0 0 0 3px var(--gglow);}
+.ai-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:13px;}
+.ai-input::placeholder{color:var(--text3);}
+.ai-send{background:var(--green);color:#000;border:none;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Instrument Sans',sans-serif;transition:all .14s;}
+.ai-send:hover{background:var(--green2);}
+.ai-send:disabled{opacity:.4;cursor:not-allowed;}
+.ai-spinner{width:12px;height:12px;border-radius:50%;border:2px solid rgba(0,229,160,.2);border-top-color:var(--green);animation:spin .7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ai-result{background:var(--bg3);border:1px solid rgba(0,229,160,.15);border-radius:var(--r2);padding:12px 14px;margin-top:8px;font-size:12px;color:var(--text2);line-height:1.7;white-space:pre-wrap;display:none;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r3);padding:24px;width:520px;max-height:80vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.8);}
+.modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);margin-bottom:16px;}
+.modal-field{margin-bottom:12px;}
+.modal-label{font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;}
+.modal-input,.modal-select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:8px 10px;font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .14s;}
+.modal-input:focus,.modal-select:focus{border-color:var(--green);}
+.modal-input::placeholder{color:var(--text3);}
+.modal-select option{background:var(--bg2);}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+
+/* TABS */
+.view-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.vtab{padding:8px 14px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;font-family:'Syne',sans-serif;letter-spacing:.3px;text-transform:uppercase;}
+.vtab.active{color:var(--green);border-bottom-color:var(--green);}
+.vtab:hover:not(.active){color:var(--text2);}
+
+/* SCROLLBARS */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--border2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:14px;right:14px;z-index:500;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:9px 14px;font-size:12px;color:var(--text);box-shadow:0 8px 30px rgba(0,0,0,.6);animation:ti .2s ease-out;}
+@keyframes ti{from{opacity:0;transform:translateY(6px);}to{opacity:1;}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo"><div class="logo-icon">▶</div>PlaywrightArc</div>
+  <div class="sep"></div>
+  <div class="page-label">CI/CD <strong>Integration Hub</strong></div>
+  <div class="topbar-right">
+    <button class="btn btn-outline" onclick="showModal('tokenModal')">🔑 API Token</button>
+    <button class="btn btn-outline" onclick="navTo('schedule')">⏱ Schedule Run</button>
+    <button class="btn btn-green" onclick="triggerRun()">▶ Trigger Run</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT NAV -->
+  <div class="left-nav">
+    <div class="nav-section">
+      <div class="nav-label">Integrations</div>
+      <div class="nav-item active" id="nav-integrations" onclick="navTo('integrations')">
+        <span class="icon">⚡</span> All Integrations
+        <span class="nav-badge nb-ok">6</span>
+      </div>
+      <div class="nav-item" id="nav-github" onclick="navTo('github')">
+        <span class="icon">⎇</span> GitHub Actions
+        <span class="nav-badge nb-ok">●</span>
+      </div>
+      <div class="nav-item" id="nav-jenkins" onclick="navTo('jenkins')">
+        <span class="icon">🔧</span> Jenkins
+        <span class="nav-badge nb-ok">●</span>
+      </div>
+      <div class="nav-item" id="nav-azure" onclick="navTo('azure')">
+        <span class="icon">☁</span> Azure DevOps
+        <span class="nav-badge nb-warn">!</span>
+      </div>
+      <div class="nav-item" id="nav-cli" onclick="navTo('cli')">
+        <span class="icon">$</span> CLI Reference
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Automation</div>
+      <div class="nav-item" id="nav-webhooks" onclick="navTo('webhooks')">
+        <span class="icon">🔔</span> Webhooks
+        <span class="nav-badge nb-ok">4</span>
+      </div>
+      <div class="nav-item" id="nav-schedule" onclick="navTo('schedule')">
+        <span class="icon">⏱</span> Schedules
+        <span class="nav-badge nb-ok">3</span>
+      </div>
+      <div class="nav-item" id="nav-results" onclick="navTo('results')">
+        <span class="icon">📄</span> Results API
+      </div>
+      <div class="nav-item" id="nav-history" onclick="navTo('history')">
+        <span class="icon">📈</span> Run History
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Notifications</div>
+      <div class="nav-item" id="nav-notifications" onclick="navTo('notifications')">
+        <span class="icon">💬</span> Slack / Teams
+        <span class="nav-badge nb-ok">2</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="mainContent">
+
+    <!-- ══ INTEGRATIONS OVERVIEW ══ -->
+    <div class="view active" id="view-integrations">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Integration Hub</div><div class="sec-sub">Connect PlaywrightArc to your CI/CD pipeline and delivery tools</div></div>
+      </div>
+      <div class="int-grid" id="intGrid"></div>
+
+      <!-- LIVE PIPELINE STATUS -->
+      <div class="sec-hdr" style="margin-top:8px;">
+        <div><div class="sec-title" style="font-size:15px;">Active Pipeline — PR #247</div><div class="sec-sub">feat/checkout-coupon-fix · triggered 3 min ago</div></div>
+        <div style="display:flex;gap:8px;">
+          <span class="status-pill sp-run"><div class="sdot sdot-yellow" style="width:6px;height:6px;"></div> Running</span>
+          <button class="btn btn-outline btn-sm" onclick="showToast('Opening pipeline logs…')">View Logs</button>
+        </div>
+      </div>
+      <div class="pipeline-wrap">
+        <div class="pipeline-hdr">
+          <span class="sdot sdot-yellow"></span>
+          <span class="pipeline-name">playwright-arc-ci.yml</span>
+          <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);">Run #1,847</span>
+        </div>
+        <div class="pipeline-stages" id="pipelineStages"></div>
+      </div>
+    </div>
+
+    <!-- ══ GITHUB ACTIONS ══ -->
+    <div class="view" id="view-github">
+      <div class="sec-hdr">
+        <div><div class="sec-title">GitHub Actions</div><div class="sec-sub">Auto-generate a workflow file and push to your repository</div></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="showToast('Opening GitHub repo…')">⎇ View Repo</button>
+          <button class="btn btn-green" onclick="showToast('✓ Workflow pushed to .github/workflows/')">↑ Push Workflow</button>
+        </div>
+      </div>
+
+      <div class="view-tabs">
+        <div class="vtab active" onclick="switchVTab(this,'gh-basic')">Basic</div>
+        <div class="vtab" onclick="switchVTab(this,'gh-matrix')">Matrix</div>
+        <div class="vtab" onclick="switchVTab(this,'gh-advanced')">Advanced</div>
+      </div>
+
+      <div id="gh-basic">
+        <div style="display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--green);">Run on push to main</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--green);">Run on pull_request</label>
+          <label style="display:flex;align-items:center;gap=6px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" style="accent-color:var(--green);">Run on schedule</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--green);">Upload HTML report artifact</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--green);">Comment results on PR</label>
+        </div>
+        <div class="code-block">
+          <div class="code-block-hdr">
+            <span class="code-block-title">.github/workflows/playwright-arc.yml</span>
+            <span class="code-block-lang">YAML</span>
+            <button class="copy-btn" onclick="showToast('📋 Copied to clipboard')">Copy</button>
+          </div>
+          <div class="code-body"><span class="cf">name</span><span class="ck">:</span> <span class="cs">PlaywrightArc Tests</span>
+
+<span class="cf">on</span><span class="ck">:</span>
+  <span class="cp">push</span><span class="ck">:</span>
+    <span class="cp">branches</span><span class="ck">:</span> <span class="cs">[ main, develop ]</span>
+  <span class="cp">pull_request</span><span class="ck">:</span>
+    <span class="cp">branches</span><span class="ck">:</span> <span class="cs">[ main ]</span>
+
+<span class="cf">jobs</span><span class="ck">:</span>
+  <span class="cp">test</span><span class="ck">:</span>
+    <span class="cp">runs-on</span><span class="ck">:</span> <span class="cs">ubuntu-latest</span>
+    <span class="cp">timeout-minutes</span><span class="ck">:</span> <span class="cn">60</span>
+
+    <span class="cp">steps</span><span class="ck">:</span>
+      <span class="ck">-</span> <span class="cp">uses</span><span class="ck">:</span> <span class="cs">actions/checkout@v4</span>
+
+      <span class="ck">-</span> <span class="cp">uses</span><span class="ck">:</span> <span class="cs">actions/setup-node@v4</span>
+        <span class="cp">with</span><span class="ck">:</span>
+          <span class="cp">node-version</span><span class="ck">:</span> <span class="cs">20</span>
+          <span class="cp">cache</span><span class="ck">:</span> <span class="cs">npm</span>
+
+      <span class="ck">-</span> <span class="cp">name</span><span class="ck">:</span> <span class="cs">Install dependencies</span>
+        <span class="cp">run</span><span class="ck">:</span> <span class="cs">npm ci</span>
+
+      <span class="ck">-</span> <span class="cp">name</span><span class="ck">:</span> <span class="cs">Install Playwright browsers</span>
+        <span class="cp">run</span><span class="ck">:</span> <span class="cs">npx playwright install --with-deps</span>
+
+      <span class="ck">-</span> <span class="cp">name</span><span class="ck">:</span> <span class="cs">Run PlaywrightArc tests</span>
+        <span class="cp">run</span><span class="ck">:</span> <span class="cs">npx playwright test</span>
+        <span class="cp">env</span><span class="ck">:</span>
+          <span class="cp">BASE_URL</span><span class="ck">:</span> <span class="cv">${{ secrets.STAGING_URL }}</span>
+          <span class="cp">AUTH_TOKEN</span><span class="ck">:</span> <span class="cv">${{ secrets.AUTH_TOKEN }}</span>
+          <span class="cp">CI</span><span class="ck">:</span> <span class="cs">true</span>
+
+      <span class="ck">-</span> <span class="cp">name</span><span class="ck">:</span> <span class="cs">Upload HTML Report</span>
+        <span class="cp">uses</span><span class="ck">:</span> <span class="cs">actions/upload-artifact@v4</span>
+        <span class="cp">if</span><span class="ck">:</span> <span class="cs">always()</span>
+        <span class="cp">with</span><span class="ck">:</span>
+          <span class="cp">name</span><span class="ck">:</span> <span class="cs">playwright-report</span>
+          <span class="cp">path</span><span class="ck">:</span> <span class="cs">playwright-report/</span>
+          <span class="cp">retention-days</span><span class="ck">:</span> <span class="cn">30</span>
+
+      <span class="ck">-</span> <span class="cp">name</span><span class="ck">:</span> <span class="cs">Comment PR with results</span>
+        <span class="cp">uses</span><span class="ck">:</span> <span class="cs">playwrightarc/pr-comment-action@v1</span>
+        <span class="cp">if</span><span class="ck">:</span> <span class="cs">always()</span>
+        <span class="cp">with</span><span class="ck">:</span>
+          <span class="cp">token</span><span class="ck">:</span> <span class="cv">${{ secrets.GITHUB_TOKEN }}</span>
+          <span class="cp">report-path</span><span class="ck">:</span> <span class="cs">results.json</span></div>
+        </div>
+      </div>
+
+      <div id="gh-matrix" style="display:none;">
+        <div class="code-block">
+          <div class="code-block-hdr"><span class="code-block-title">Matrix — Cross-browser</span><span class="code-block-lang">YAML</span><button class="copy-btn" onclick="showToast('📋 Copied')">Copy</button></div>
+          <div class="code-body"><span class="cf">jobs</span><span class="ck">:</span>
+  <span class="cp">test</span><span class="ck">:</span>
+    <span class="cp">strategy</span><span class="ck">:</span>
+      <span class="cp">fail-fast</span><span class="ck">:</span> <span class="ck">false</span>
+      <span class="cp">matrix</span><span class="ck">:</span>
+        <span class="cp">browser</span><span class="ck">:</span> <span class="cs">[ chromium, firefox, webkit ]</span>
+        <span class="cp">environment</span><span class="ck">:</span> <span class="cs">[ staging, production ]</span>
+    <span class="cp">runs-on</span><span class="ck">:</span> <span class="cs">ubuntu-latest</span>
+    <span class="cp">steps</span><span class="ck">:</span>
+      <span class="cc"># ... install steps ...</span>
+      <span class="ck">-</span> <span class="cp">name</span><span class="ck">:</span> <span class="cs">Run tests</span>
+        <span class="cp">run</span><span class="ck">:</span> <span class="cs">npx playwright test --project=${{ matrix.browser }}</span>
+        <span class="cp">env</span><span class="ck">:</span>
+          <span class="cp">BASE_URL</span><span class="ck">:</span> <span class="cv">${{ secrets[format('{0}_URL', matrix.environment)] }}</span>
+          <span class="cp">ARC_ENVIRONMENT</span><span class="ck">:</span> <span class="cv">${{ matrix.environment }}</span></div>
+        </div>
+      </div>
+
+      <div id="gh-advanced" style="display:none;">
+        <div class="code-block">
+          <div class="code-block-hdr"><span class="code-block-title">Advanced — Sharding + Retry</span><span class="code-block-lang">YAML</span><button class="copy-btn" onclick="showToast('📋 Copied')">Copy</button></div>
+          <div class="code-body"><span class="cf">jobs</span><span class="ck">:</span>
+  <span class="cp">test</span><span class="ck">:</span>
+    <span class="cp">strategy</span><span class="ck">:</span>
+      <span class="cp">matrix</span><span class="ck">:</span>
+        <span class="cp">shardIndex</span><span class="ck">:</span> <span class="cs">[ 1, 2, 3, 4 ]</span>
+        <span class="cp">shardTotal</span><span class="ck">:</span> <span class="cs">[ 4 ]</span>
+    <span class="cp">steps</span><span class="ck">:</span>
+      <span class="ck">-</span> <span class="cp">name</span><span class="ck">:</span> <span class="cs">Run shard</span>
+        <span class="cp">run</span><span class="ck">:</span> <span class="cv">|</span>
+          <span class="cs">npx playwright test \</span>
+            <span class="cs">--shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} \</span>
+            <span class="cs">--retries=2</span>
+
+  <span class="cp">merge-reports</span><span class="ck">:</span>
+    <span class="cp">needs</span><span class="ck">:</span> <span class="cs">[ test ]</span>
+    <span class="cp">runs-on</span><span class="ck">:</span> <span class="cs">ubuntu-latest</span>
+    <span class="cp">steps</span><span class="ck">:</span>
+      <span class="ck">-</span> <span class="cp">name</span><span class="ck">:</span> <span class="cs">Merge Playwright reports</span>
+        <span class="cp">run</span><span class="ck">:</span> <span class="cs">npx playwright merge-reports --reporter html ./all-blobs</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ JENKINS ══ -->
+    <div class="view" id="view-jenkins">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Jenkins</div><div class="sec-sub">Declarative Pipeline and Jenkinsfile generation</div></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="showToast('Testing Jenkins connection…')">Test Connection</button>
+          <button class="btn btn-green" onclick="showToast('✓ Jenkinsfile synced')">↑ Sync Jenkinsfile</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div class="modal-field">
+          <div class="modal-label">Jenkins URL</div>
+          <input class="modal-input" value="https://jenkins.internal.myshop.com" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:7px 10px;font-family:'DM Mono',monospace;font-size:12px;outline:none;width:100%;">
+        </div>
+        <div class="modal-field">
+          <div class="modal-label">Credentials ID</div>
+          <input class="modal-input" value="playwright-arc-token" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:7px 10px;font-family:'DM Mono',monospace;font-size:12px;outline:none;width:100%;">
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-block-hdr"><span class="code-block-title">Jenkinsfile</span><span class="code-block-lang">Groovy</span><button class="copy-btn" onclick="showToast('📋 Copied')">Copy</button></div>
+        <div class="code-body"><span class="ck">pipeline</span> <span class="cp">{</span>
+  <span class="ck">agent</span> <span class="cp">{</span> <span class="cf">docker</span> <span class="cp">{</span> <span class="cf">image</span> <span class="cs">'mcr.microsoft.com/playwright:v1.42.0-jammy'</span> <span class="cp">}</span> <span class="cp">}</span>
+
+  <span class="ck">environment</span> <span class="cp">{</span>
+    <span class="cp">BASE_URL</span>    <span class="ck">=</span> <span class="cf">credentials</span><span class="cp">(</span><span class="cs">'staging-base-url'</span><span class="cp">)</span>
+    <span class="cp">AUTH_TOKEN</span>  <span class="ck">=</span> <span class="cf">credentials</span><span class="cp">(</span><span class="cs">'auth-token'</span><span class="cp">)</span>
+    <span class="cp">CI</span>          <span class="ck">=</span> <span class="cs">'true'</span>
+  <span class="cp">}</span>
+
+  <span class="ck">stages</span> <span class="cp">{</span>
+    <span class="ck">stage</span><span class="cp">(</span><span class="cs">'Install'</span><span class="cp">)</span> <span class="cp">{</span>
+      <span class="ck">steps</span> <span class="cp">{</span>
+        <span class="cf">sh</span> <span class="cs">'npm ci'</span>
+      <span class="cp">}</span>
+    <span class="cp">}</span>
+    <span class="ck">stage</span><span class="cp">(</span><span class="cs">'Test'</span><span class="cp">)</span> <span class="cp">{</span>
+      <span class="ck">steps</span> <span class="cp">{</span>
+        <span class="cf">sh</span> <span class="cs">'npx playwright test --reporter=junit,html'</span>
+      <span class="cp">}</span>
+      <span class="ck">post</span> <span class="cp">{</span>
+        <span class="ck">always</span> <span class="cp">{</span>
+          <span class="cf">junit</span> <span class="cs">'results.xml'</span>
+          <span class="cf">publishHTML</span><span class="cp">([</span>
+            <span class="cp">reportDir</span><span class="ck">:</span> <span class="cs">'playwright-report'</span><span class="cp">,</span>
+            <span class="cp">reportFiles</span><span class="ck">:</span> <span class="cs">'index.html'</span><span class="cp">,</span>
+            <span class="cp">reportName</span><span class="ck">:</span> <span class="cs">'Playwright Report'</span>
+          <span class="cp">])</span>
+        <span class="cp">}</span>
+      <span class="cp">}</span>
+    <span class="cp">}</span>
+  <span class="cp">}</span>
+<span class="cp">}</span></div>
+      </div>
+    </div>
+
+    <!-- ══ AZURE DEVOPS ══ -->
+    <div class="view" id="view-azure">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Azure DevOps</div><div class="sec-sub">
+          <span style="background:var(--ydim);color:var(--yellow);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">⚠ Service connection needs re-auth</span>
+        </div></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="showModal('azureModal')">⚙ Configure</button>
+          <button class="btn btn-green" onclick="showToast('✓ azure-pipelines.yml synced')">↑ Push Pipeline</button>
+        </div>
+      </div>
+      <div class="code-block">
+        <div class="code-block-hdr"><span class="code-block-title">azure-pipelines.yml</span><span class="code-block-lang">YAML</span><button class="copy-btn" onclick="showToast('📋 Copied')">Copy</button></div>
+        <div class="code-body"><span class="cf">trigger</span><span class="ck">:</span>
+  <span class="cp">branches</span><span class="ck">:</span>
+    <span class="cp">include</span><span class="ck">:</span> <span class="cs">[ main, develop ]</span>
+
+<span class="cf">pool</span><span class="ck">:</span>
+  <span class="cp">vmImage</span><span class="ck">:</span> <span class="cs">ubuntu-latest</span>
+
+<span class="cf">steps</span><span class="ck">:</span>
+  <span class="ck">-</span> <span class="cp">task</span><span class="ck">:</span> <span class="cs">NodeTool@0</span>
+    <span class="cp">inputs</span><span class="ck">:</span>
+      <span class="cp">versionSpec</span><span class="ck">:</span> <span class="cs">20.x</span>
+
+  <span class="ck">-</span> <span class="cp">script</span><span class="ck">:</span> <span class="cs">npm ci</span>
+    <span class="cp">displayName</span><span class="ck">:</span> <span class="cs">Install dependencies</span>
+
+  <span class="ck">-</span> <span class="cp">script</span><span class="ck">:</span> <span class="cs">npx playwright install --with-deps</span>
+    <span class="cp">displayName</span><span class="ck">:</span> <span class="cs">Install Playwright</span>
+
+  <span class="ck">-</span> <span class="cp">script</span><span class="ck">:</span> <span class="cs">npx playwright test</span>
+    <span class="cp">displayName</span><span class="ck">:</span> <span class="cs">Run tests</span>
+    <span class="cp">env</span><span class="ck">:</span>
+      <span class="cp">BASE_URL</span><span class="ck">:</span> <span class="cv">$(STAGING_URL)</span>
+      <span class="cp">AUTH_TOKEN</span><span class="ck">:</span> <span class="cv">$(AUTH_TOKEN)</span>
+
+  <span class="ck">-</span> <span class="cp">task</span><span class="ck">:</span> <span class="cs">PublishTestResults@2</span>
+    <span class="cp">condition</span><span class="ck">:</span> <span class="cs">always()</span>
+    <span class="cp">inputs</span><span class="ck">:</span>
+      <span class="cp">testResultsFormat</span><span class="ck">:</span> <span class="cs">JUnit</span>
+      <span class="cp">testResultsFiles</span><span class="ck">:</span> <span class="cs">results.xml</span>
+
+  <span class="ck">-</span> <span class="cp">task</span><span class="ck">:</span> <span class="cs">PublishPipelineArtifact@1</span>
+    <span class="cp">condition</span><span class="ck">:</span> <span class="cs">always()</span>
+    <span class="cp">inputs</span><span class="ck">:</span>
+      <span class="cp">artifactName</span><span class="ck">:</span> <span class="cs">playwright-report</span>
+      <span class="cp">targetPath</span><span class="ck">:</span> <span class="cs">playwright-report</span></div>
+      </div>
+    </div>
+
+    <!-- ══ CLI REFERENCE ══ -->
+    <div class="view" id="view-cli">
+      <div class="sec-hdr">
+        <div><div class="sec-title">CLI Reference</div><div class="sec-sub">Run PlaywrightArc from the terminal or any CI system</div></div>
+      </div>
+
+      <div class="code-block" style="margin-bottom:14px;">
+        <div class="code-block-hdr"><span class="code-block-title">Install</span><span class="code-block-lang">Shell</span><button class="copy-btn" onclick="showToast('📋 Copied')">Copy</button></div>
+        <div class="code-body"><span class="cv">$</span> <span class="cf">npm</span> install <span class="ck">-g</span> @playwrightarc/cli
+<span class="cv">$</span> <span class="cf">arc</span> <span class="ck">--version</span>
+<span class="cs">  PlaywrightArc CLI v2.4.1</span></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Common Commands</div>
+          ${[
+            ['arc run', 'Run all tests in current project'],
+            ['arc run --suite Checkout', 'Run specific suite'],
+            ['arc run --tag @smoke', 'Run by tag'],
+            ['arc run --env staging', 'Use staging profile'],
+            ['arc run --engine selenium', 'Override engine'],
+            ['arc run --workers 8', 'Set parallel workers'],
+            ['arc run --retries 2', 'Retry failed tests'],
+            ['arc run --headed', 'Run with browser visible'],
+            ['arc report', 'Open last HTML report'],
+            ['arc import katalon ./project.zip', 'Import Katalon project'],
+            ['arc env list', 'List environments'],
+            ['arc env use staging', 'Switch active env'],
+          ].map(([cmd,desc]) => `
+            <div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);align-items:center;">
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);min-width:220px;">${cmd}</span>
+              <span style="font-size:11px;color:var(--text3);">${desc}</span>
+            </div>`).join('')}
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Exit Codes & Output Flags</div>
+          <div class="code-block">
+            <div class="code-block-hdr"><span class="code-block-title">Reporters</span><span class="code-block-lang">Shell</span><button class="copy-btn" onclick="showToast('📋 Copied')">Copy</button></div>
+            <div class="code-body"><span class="cc"># Multiple reporters</span>
+<span class="cv">$</span> arc run \
+  <span class="ck">--reporter</span> html \
+  <span class="ck">--reporter</span> json \
+  <span class="ck">--reporter</span> junit \
+  <span class="ck">--output</span> ./results
+
+<span class="cc"># Exit codes</span>
+<span class="cn">0</span>  <span class="cc"># All tests passed</span>
+<span class="cn">1</span>  <span class="cc"># Tests failed</span>
+<span class="cn">2</span>  <span class="cc"># Config / runtime error</span></div>
+          </div>
+          <div class="code-block" style="margin-top:14px;">
+            <div class="code-block-hdr"><span class="code-block-title">CI Mode</span><span class="code-block-lang">Shell</span><button class="copy-btn" onclick="showToast('📋 Copied')">Copy</button></div>
+            <div class="code-body"><span class="cc"># Optimized for CI</span>
+<span class="cv">$</span> arc run \
+  <span class="ck">--ci</span> \
+  <span class="ck">--env</span> staging \
+  <span class="ck">--workers</span> <span class="cn">4</span> \
+  <span class="ck">--retries</span> <span class="cn">2</span> \
+  <span class="ck">--reporter</span> junit</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ WEBHOOKS ══ -->
+    <div class="view" id="view-webhooks">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Webhooks</div><div class="sec-sub">POST results to external URLs on run events</div></div>
+        <button class="btn btn-green" onclick="showModal('webhookModal')">+ New Webhook</button>
+      </div>
+      <div id="webhooksList"></div>
+
+      <div style="margin-top:20px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Payload Example</div>
+        <div class="code-block">
+          <div class="code-block-hdr"><span class="code-block-title">POST payload — run.completed</span><span class="code-block-lang">JSON</span><button class="copy-btn" onclick="showToast('📋 Copied')">Copy</button></div>
+          <div class="code-body"><span class="cp">{</span>
+  <span class="cf">"event"</span><span class="ck">:</span>     <span class="cs">"run.completed"</span><span class="cp">,</span>
+  <span class="cf">"runId"</span><span class="ck">:</span>     <span class="cs">"run_1847"</span><span class="cp">,</span>
+  <span class="cf">"project"</span><span class="ck">:</span>   <span class="cs">"E-Commerce Suite"</span><span class="cp">,</span>
+  <span class="cf">"status"</span><span class="ck">:</span>    <span class="cs">"failed"</span><span class="cp">,</span>
+  <span class="cf">"passed"</span><span class="ck">:</span>    <span class="cn">111</span><span class="cp">,</span>
+  <span class="cf">"failed"</span><span class="ck">:</span>    <span class="cn">1</span><span class="cp">,</span>
+  <span class="cf">"duration"</span><span class="ck">:</span>  <span class="cn">38400</span><span class="cp">,</span>
+  <span class="cf">"branch"</span><span class="ck">:</span>    <span class="cs">"feat/coupon-fix"</span><span class="cp">,</span>
+  <span class="cf">"commit"</span><span class="ck">:</span>    <span class="cs">"a3f9c12"</span><span class="cp">,</span>
+  <span class="cf">"reportUrl"</span><span class="ck">:</span> <span class="cs">"https://arc.myshop.com/reports/run_1847"</span>
+<span class="cp">}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SCHEDULE ══ -->
+    <div class="view" id="view-schedule">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Scheduled Runs</div><div class="sec-sub">Cron-based automatic test execution</div></div>
+        <button class="btn btn-green" onclick="showModal('scheduleModal')">+ New Schedule</button>
+      </div>
+      <div id="scheduleList"></div>
+
+      <div style="margin-top:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Cron Reference</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:'DM Mono',monospace;font-size:11px;">
+          ${[['0 */6 * * *','Every 6 hours'],['0 9 * * 1-5','Weekdays at 9am'],['0 2 * * *','Daily at 2am'],['0 8 * * 1','Every Monday 8am'],['*/30 * * * *','Every 30 minutes'],['0 0 * * 0','Weekly Sunday midnight']].map(([cron,desc])=>
+            `<div style="color:var(--green);">${cron}</div><div style="color:var(--text3);">${desc}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ RESULTS API ══ -->
+    <div class="view" id="view-results">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Results API</div><div class="sec-sub">Machine-readable endpoints for CI integration and external tooling</div></div>
+        <button class="btn btn-outline" onclick="showModal('tokenModal')">🔑 Get API Token</button>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Endpoints</div>
+      <div id="endpointsList"></div>
+
+      <div style="margin-top:14px;">
+        <div class="code-block">
+          <div class="code-block-hdr"><span class="code-block-title">Example — Get latest run</span><span class="code-block-lang">Shell</span><button class="copy-btn" onclick="showToast('📋 Copied')">Copy</button></div>
+          <div class="code-body"><span class="cv">$</span> curl <span class="ck">-H</span> <span class="cs">"Authorization: Bearer &lt;token&gt;"</span> \
+  <span class="cs">https://api.playwrightarc.com/v1/projects/ecomm/runs/latest</span>
+
+<span class="cp">{</span>
+  <span class="cf">"id"</span><span class="ck">:</span>       <span class="cs">"run_1847"</span><span class="cp">,</span>
+  <span class="cf">"status"</span><span class="ck">:</span>  <span class="cs">"failed"</span><span class="cp">,</span>
+  <span class="cf">"passed"</span><span class="ck">:</span>  <span class="cn">111</span><span class="cp">,</span>
+  <span class="cf">"failed"</span><span class="ck">:</span>  <span class="cn">1</span><span class="cp">,</span>
+  <span class="cf">"flaky"</span><span class="ck">:</span>   <span class="cn">2</span><span class="cp">,</span>
+  <span class="cf">"duration"</span><span class="ck">:</span> <span class="cn">38400</span>
+<span class="cp">}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ RUN HISTORY ══ -->
+    <div class="view" id="view-history">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Run History</div><div class="sec-sub">All CI/CD triggered and manual runs across integrations</div></div>
+        <button class="btn btn-outline" onclick="showToast('Exporting CSV…')">↓ Export</button>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;">
+        <div class="run-table-hdr"><span>#</span><span>Branch / Commit</span><span>Trigger</span><span>Tests</span><span>Duration</span><span>Status</span><span>Time</span></div>
+        <div id="runHistory"></div>
+      </div>
+    </div>
+
+    <!-- ══ NOTIFICATIONS ══ -->
+    <div class="view" id="view-notifications">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Slack & Teams Notifications</div><div class="sec-sub">Send run results to messaging channels</div></div>
+        <button class="btn btn-green" onclick="showModal('notifModal')">+ Add Channel</button>
+      </div>
+      <div id="notifList"></div>
+
+      <div style="margin-top:20px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Notification Rules</div>
+        ${[['Always','Send on every run completion'],['On failure only','Alert when any test fails'],['On recovery','Alert when suite recovers from failure'],['On flaky','Alert when flaky tests detected']].map(([rule,desc])=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+            <input type="checkbox" ${rule!=='Always'?'checked':''} style="accent-color:var(--green);">
+            <div>
+              <div style="font-size:12px;color:var(--text);font-weight:500;">${rule}</div>
+              <div style="font-size:11px;color:var(--text3);">${desc}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+
+      <!-- AI BAR -->
+      <div style="margin-top:24px;background:var(--bg2);border:1px solid rgba(0,229,160,.12);border-radius:var(--r3);padding:16px;">
+        <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--green);margin-bottom:10px;">✦ AI: Generate CI/CD config</div>
+        <div class="ai-inner">
+          <span style="font-size:15px;">✦</span>
+          <input class="ai-input" id="aiInput" placeholder="Describe your pipeline… e.g. 'GitHub Actions, run on PR, Slack notify on fail, 4 parallel workers, staging env'">
+          <button class="ai-send" id="aiSendBtn" onclick="generateCI()">Generate</button>
+        </div>
+        <div class="ai-result" id="aiResult"></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<!-- MODALS -->
+<div class="modal-overlay" id="webhookModal">
+  <div class="modal">
+    <div class="modal-title">New Webhook</div>
+    <div class="modal-field"><div class="modal-label">URL</div><input class="modal-input" placeholder="https://hooks.slack.com/services/…"></div>
+    <div class="modal-field"><div class="modal-label">Events</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);"><input type="checkbox" checked style="accent-color:var(--green);">run.completed</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);"><input type="checkbox" checked style="accent-color:var(--green);">run.failed</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);"><input type="checkbox" style="accent-color:var(--green);">run.started</label>
+      </div>
+    </div>
+    <div class="modal-field"><div class="modal-label">Secret (HMAC signing)</div><input class="modal-input" type="password" placeholder="Optional webhook secret"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('webhookModal')">Cancel</button>
+      <button class="btn btn-outline" onclick="showToast('📡 Sending test payload…')">Send Test</button>
+      <button class="btn btn-green" onclick="hideModal('webhookModal');showToast('✓ Webhook added')">Add Webhook</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="scheduleModal">
+  <div class="modal">
+    <div class="modal-title">New Scheduled Run</div>
+    <div class="modal-field"><div class="modal-label">Name</div><input class="modal-input" placeholder="e.g. Nightly Regression"></div>
+    <div class="modal-field"><div class="modal-label">Cron Expression</div><input class="modal-input" placeholder="0 2 * * *" value="0 2 * * *"></div>
+    <div class="modal-field"><div class="modal-label">Suite</div><select class="modal-select"><option>All Tests</option><option>Checkout Flows</option><option>Authentication</option><option>API Tests</option></select></div>
+    <div class="modal-field"><div class="modal-label">Environment</div><select class="modal-select"><option>Staging</option><option>Local Dev</option><option>Production</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('scheduleModal')">Cancel</button>
+      <button class="btn btn-green" onclick="hideModal('scheduleModal');showToast('✓ Schedule created')">Create Schedule</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="tokenModal">
+  <div class="modal">
+    <div class="modal-title">API Token</div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;margin-bottom:14px;">
+      <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--green);word-break:break-all;">arc_live_sk_8f3k2j9m4n1p7q6r5s0t…</div>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:14px;">Use this token with the <code style="font-family:'DM Mono',monospace;color:var(--blue);">Authorization: Bearer</code> header in all API calls.</div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('tokenModal')">Close</button>
+      <button class="btn btn-red btn-sm" onclick="showToast('Token revoked')">Revoke</button>
+      <button class="btn btn-green" onclick="hideModal('tokenModal');showToast('📋 Token copied')">Copy Token</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="azureModal">
+  <div class="modal">
+    <div class="modal-title">Azure DevOps Configuration</div>
+    <div class="modal-field"><div class="modal-label">Organization URL</div><input class="modal-input" placeholder="https://dev.azure.com/myorg"></div>
+    <div class="modal-field"><div class="modal-label">Project</div><input class="modal-input" placeholder="MyProject"></div>
+    <div class="modal-field"><div class="modal-label">Personal Access Token</div><input class="modal-input" type="password" placeholder="PAT token"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('azureModal')">Cancel</button>
+      <button class="btn btn-outline" onclick="showToast('Testing Azure connection…')">Test</button>
+      <button class="btn btn-green" onclick="hideModal('azureModal');showToast('✓ Azure DevOps connected')">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="notifModal">
+  <div class="modal">
+    <div class="modal-title">Add Notification Channel</div>
+    <div class="modal-field"><div class="modal-label">Platform</div><select class="modal-select"><option>Slack</option><option>Microsoft Teams</option><option>Discord</option></select></div>
+    <div class="modal-field"><div class="modal-label">Webhook URL</div><input class="modal-input" placeholder="https://hooks.slack.com/…"></div>
+    <div class="modal-field"><div class="modal-label">Channel name</div><input class="modal-input" placeholder="#qa-alerts"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideModal('notifModal')">Cancel</button>
+      <button class="btn btn-green" onclick="hideModal('notifModal');showToast('✓ Channel added')">Add Channel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const INTEGRATIONS = [
+  { name:'GitHub Actions', icon:'⎇', iconBg:'#161b22', connected:true, runs:1847, lastRun:'3 min ago', branch:'main', desc:'Auto-run on push/PR with PR comments and artifact upload' },
+  { name:'Jenkins', icon:'🔧', iconBg:'#335061', connected:true, runs:342, lastRun:'1 hr ago', branch:'develop', desc:'Declarative pipeline with JUnit reports and HTML publishing' },
+  { name:'Azure DevOps', icon:'☁', iconBg:'#0078d4', connected:true, runs:89, lastRun:'2 hrs ago', branch:'main', desc:'YAML pipeline with test result publishing — needs re-auth' },
+  { name:'Slack', icon:'💬', iconBg:'#4a154b', connected:true, runs:null, lastRun:'Active', branch:null, desc:'Post pass/fail notifications to #qa-alerts and #deploys' },
+  { name:'Jira', icon:'J', iconBg:'#0052cc', connected:false, runs:null, lastRun:'Not connected', branch:null, desc:'Auto-create Jira tickets for failing tests' },
+  { name:'Xray', icon:'X', iconBg:'#00b4d8', connected:false, runs:null, lastRun:'Not connected', branch:null, desc:'Sync test results with Xray test management' },
+];
+
+const PIPELINE_STAGES = [
+  { icon:'✓', label:'Checkout', dur:'2s', state:'done' },
+  { icon:'✓', label:'Install', dur:'48s', state:'done' },
+  { icon:'✓', label:'Build', dur:'12s', state:'done' },
+  { icon:'◉', label:'Test', dur:'Running…', state:'running' },
+  { icon:'⊙', label:'Report', dur:'—', state:'pending' },
+  { icon:'⊙', label:'Deploy', dur:'—', state:'pending' },
+];
+
+const RUN_HISTORY = [
+  { num:1847, branch:'feat/coupon-fix', commit:'a3f9c12', trigger:'Pull Request', tests:'111/112', dur:'38.4s', status:'failed', time:'3m ago' },
+  { num:1846, branch:'main', commit:'8b2d4f1', trigger:'Push', tests:'112/112', dur:'31.2s', status:'passed', time:'1h ago' },
+  { num:1845, branch:'main', commit:'7a1c3e0', trigger:'Schedule', tests:'112/112', dur:'29.8s', status:'passed', time:'7h ago' },
+  { num:1844, branch:'feat/auth-sso', commit:'6f9a2b8', trigger:'Pull Request', tests:'109/112', dur:'35.1s', status:'failed', time:'10h ago' },
+  { num:1843, branch:'main', commit:'5d8b1a7', trigger:'Push', tests:'112/112', dur:'28.4s', status:'passed', time:'1d ago' },
+  { num:1842, branch:'main', commit:'4c7a0f6', trigger:'Schedule', tests:'112/112', dur:'30.1s', status:'passed', time:'1d ago' },
+  { num:1841, branch:'fix/cart-badge', commit:'3b6f9e5', trigger:'Pull Request', tests:'112/112', dur:'27.9s', status:'passed', time:'2d ago' },
+];
+
+const WEBHOOKS = [
+  { event:'run.failed', url:'https://hooks.slack.com/services/T00/B00/xxxxxxxxxxx', last:'2 min ago', ok:true },
+  { event:'run.completed', url:'https://myshop.atlassian.net/webhooks/playwrightarc', last:'3 min ago', ok:true },
+  { event:'run.completed', url:'https://api.pagerduty.com/webhooks/arc-alerts', last:'1 hr ago', ok:true },
+  { event:'run.failed', url:'https://hooks.slack.com/services/T00/B11/yyyyyyyyyy', last:'5 hrs ago', ok:false },
+];
+
+const SCHEDULES = [
+  { cron:'0 2 * * *', name:'Nightly Full Regression', suite:'All Tests', env:'Staging', next:'Tonight 2:00 AM' },
+  { cron:'0 9 * * 1-5', name:'Weekday Smoke Suite', suite:'@smoke', env:'Staging', next:'Tomorrow 9:00 AM' },
+  { cron:'0 6 * * 0', name:'Weekly Production Check', suite:'All Tests', env:'Production', next:'Sunday 6:00 AM' },
+];
+
+const ENDPOINTS = [
+  { method:'GET', path:'/v1/projects/{id}/runs', desc:'List all runs for a project' },
+  { method:'GET', path:'/v1/projects/{id}/runs/latest', desc:'Get latest run results' },
+  { method:'GET', path:'/v1/runs/{runId}', desc:'Get run details and test results' },
+  { method:'GET', path:'/v1/runs/{runId}/artifacts', desc:'List artifacts (traces, screenshots)' },
+  { method:'POST', path:'/v1/projects/{id}/runs', desc:'Trigger a new run via API' },
+  { method:'GET', path:'/v1/projects/{id}/flaky', desc:'Get flaky test report' },
+];
+
+const NOTIFS = [
+  { platform:'Slack', icon:'💬', channel:'#qa-alerts', url:'hooks.slack.com/…', events:['run.failed','run.recovered'], active:true },
+  { platform:'Teams', icon:'🔷', channel:'QA Channel', url:'outlook.office.com/webhook/…', events:['run.completed'], active:true },
+];
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+const VIEWS = ['integrations','github','jenkins','azure','cli','webhooks','schedule','results','history','notifications'];
+function navTo(view) {
+  VIEWS.forEach(v => {
+    document.getElementById('view-'+v)?.classList.toggle('active', v===view);
+    document.getElementById('nav-'+v)?.classList.toggle('active', v===view);
+  });
+  if (view==='integrations') renderIntegrations();
+  if (view==='webhooks') renderWebhooks();
+  if (view==='schedule') renderSchedule();
+  if (view==='results') renderResults();
+  if (view==='history') renderHistory();
+  if (view==='notifications') renderNotifications();
+}
+
+// ── INTEGRATIONS ──────────────────────────────────────────────────────────────
+function renderIntegrations() {
+  document.getElementById('intGrid').innerHTML = INTEGRATIONS.map(i => `
+    <div class="int-card ${i.connected?'connected':''}">
+      <div class="int-card-hdr">
+        <div class="int-logo" style="background:${i.iconBg}22;color:${i.connected?'var(--text)':'var(--text3)'};">${i.icon}</div>
+        <div>
+          <div class="int-name">${i.name}</div>
+          <div class="int-desc">${i.desc}</div>
+        </div>
+        <span class="conn-badge ${i.connected?'cb-on':'cb-off'}">${i.connected?'● Connected':'○ Not connected'}</span>
+      </div>
+      ${i.runs!==null?`<div class="int-stats">
+        <span class="int-stat"><strong>${i.runs}</strong> runs</span>
+        <span class="int-stat">Last: <strong>${i.lastRun}</strong></span>
+        ${i.branch?`<span class="int-stat">Branch: <strong>${i.branch}</strong></span>`:''}
+      </div>`:'<div style="height:8px;"></div>'}
+      <div class="int-actions">
+        ${i.connected
+          ? `<button class="btn btn-outline btn-sm" onclick="navTo('${i.name.toLowerCase().replace(/\s+/g,'').replace('actions','').replace('devops','').replace('azure','azure')}')">Configure</button>
+             <button class="btn btn-ghost btn-sm" onclick="showToast('↺ Reconnecting ${i.name}…')">Reconnect</button>`
+          : `<button class="btn btn-green btn-sm" onclick="showToast('→ Connecting ${i.name}…')">Connect</button>`}
+      </div>
+    </div>`).join('');
+
+  // Pipeline stages
+  document.getElementById('pipelineStages').innerHTML = PIPELINE_STAGES.map((s,i) => {
+    const isLast = i === PIPELINE_STAGES.length-1;
+    const connCls = s.state==='done'?'done':s.state==='running'?'running':'';
+    return `<div class="pipeline-stage">
+      ${!isLast?`<div class="stage-connector ${connCls}"></div>`:''}
+      <div class="stage-dot sd-${s.state==='done'?'done':s.state==='running'?'running':s.state==='fail'?'fail':'pending'}">${s.state==='done'?'✓':s.state==='running'?'◉':'⊙'}</div>
+      <div class="stage-label">${s.label}</div>
+      <div class="stage-dur">${s.dur}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── WEBHOOKS ─────────────────────────────────────────────────────────────────
+function renderWebhooks() {
+  document.getElementById('webhooksList').innerHTML = WEBHOOKS.map(w => `
+    <div class="webhook-item">
+      <span class="webhook-event we-${w.event.includes('fail')?'fail':'all'}">${w.event}</span>
+      <span class="webhook-url">${w.url}</span>
+      <span class="webhook-last">Last: ${w.last}</span>
+      <div class="webhook-status ${w.ok?'ws-ok':'ws-err'}"></div>
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn-ghost btn-sm" onclick="showToast('📡 Test payload sent')">Test</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Webhook removed')">×</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── SCHEDULE ─────────────────────────────────────────────────────────────────
+function renderSchedule() {
+  document.getElementById('scheduleList').innerHTML = SCHEDULES.map(s => `
+    <div class="schedule-item">
+      <span class="cron-badge">${s.cron}</span>
+      <div class="schedule-desc">
+        <div class="schedule-name">${s.name}</div>
+        <div class="schedule-next">Suite: ${s.suite} · Env: ${s.env} · Next: ${s.next}</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-outline btn-sm" onclick="showToast('▶ Running now…')">▶ Now</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Schedule paused')">Pause</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Schedule deleted')">×</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── RESULTS API ───────────────────────────────────────────────────────────────
+function renderResults() {
+  document.getElementById('endpointsList').innerHTML = ENDPOINTS.map(e => `
+    <div class="endpoint-row">
+      <span class="ep-method m-${e.method.toLowerCase()}">${e.method}</span>
+      <span class="ep-path">${e.path}</span>
+      <span class="ep-desc">${e.desc}</span>
+      <button class="btn btn-ghost btn-sm" onclick="showToast('Opening API docs…')">Docs</button>
+    </div>`).join('');
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+function renderHistory() {
+  document.getElementById('runHistory').innerHTML = RUN_HISTORY.map(r => `
+    <div class="run-row" onclick="showToast('Opening run #${r.num}…')">
+      <span class="run-num">#${r.num}</span>
+      <div class="run-branch">
+        <span class="run-branch-name">⎇ ${r.branch}</span>
+        <span class="run-commit">${r.commit}</span>
+      </div>
+      <span class="run-trigger">${r.trigger}</span>
+      <span class="run-dur">${r.tests}</span>
+      <span class="run-dur">${r.dur}</span>
+      <span class="status-pill sp-${r.status==='passed'?'pass':'fail'}">${r.status==='passed'?'✓ Passed':'✗ Failed'}</span>
+      <span class="run-time">${r.time}</span>
+    </div>`).join('');
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────────────────────
+function renderNotifications() {
+  document.getElementById('notifList').innerHTML = NOTIFS.map(n => `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">
+      <span style="font-size:22px;">${n.icon}</span>
+      <div style="flex:1;">
+        <div style="font-size:12px;color:var(--text);font-weight:600;">${n.platform} — ${n.channel}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-top:2px;">${n.url}</div>
+        <div style="display:flex;gap:4px;margin-top:6px;">${n.events.map(e=>`<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--gdim);color:var(--green);">${e}</span>`).join('')}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--green);"></div>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Test message sent to ${n.channel}')">Test</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Edit ${n.platform} config')">Edit</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── TRIGGER RUN ───────────────────────────────────────────────────────────────
+function triggerRun() {
+  showToast('▶ Run #1848 triggered via API');
+}
+
+// ── VIEW TABS ─────────────────────────────────────────────────────────────────
+function switchVTab(el, id) {
+  document.querySelectorAll('.vtab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['gh-basic','gh-matrix','gh-advanced'].forEach(p => {
+    const el2 = document.getElementById(p);
+    if (el2) el2.style.display = p===id ? '' : 'none';
+  });
+}
+
+// ── AI GENERATE CI ────────────────────────────────────────────────────────────
+async function generateCI() {
+  const input = document.getElementById('aiInput');
+  const prompt = input.value.trim();
+  if (!prompt) return;
+  const btn = document.getElementById('aiSendBtn');
+  const result = document.getElementById('aiResult');
+  btn.disabled = true; btn.innerHTML = '<div class="ai-spinner"></div>';
+  result.style.display = 'none';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:600,
+        messages:[{role:'user', content:`Generate a CI/CD pipeline config snippet for PlaywrightArc (a Playwright-based test automation platform) based on this description: "${prompt}". Keep it concise and practical. Include relevant YAML or shell commands. Focus on: trigger conditions, environment variables, parallel workers, retries, and notification setup.`}]
+      })
+    });
+    const data = await resp.json();
+    result.textContent = data.content?.[0]?.text || 'No response generated';
+    result.style.display = '';
+  } catch(e) {
+    result.textContent = '# GitHub Actions — generated config\nname: PlaywrightArc CI\non: [push, pull_request]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: npm ci && npx playwright install\n      - run: npx playwright test --workers=4 --retries=2\n        env:\n          BASE_URL: ${{ secrets.STAGING_URL }}\n      # Slack notification on failure handled via webhook';
+    result.style.display = '';
+  }
+  btn.disabled = false; btn.textContent = 'Generate';
+  input.value = '';
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function showModal(id) { document.getElementById(id).classList.add('open'); }
+function hideModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); }));
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let toastT;
+function showToast(msg) {
+  clearTimeout(toastT);
+  let t = document.querySelector('.toast');
+  if (!t) { t=document.createElement('div'); t.className='toast'; document.body.appendChild(t); }
+  t.textContent=msg; t.style.opacity='1';
+  toastT=setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t?.remove(),300); }, 2600);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+navTo('integrations');
+</script>
+</body>
+</html>

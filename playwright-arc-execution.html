@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlaywrightArc — Execution Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #090c0f;
+  --bg2:     #0f1318;
+  --bg3:     #161b22;
+  --bg4:     #1c2330;
+  --bg5:     #222c3a;
+  --border:  #1e2736;
+  --border2: #28364a;
+  --text:    #d8e0ee;
+  --text2:   #7d8fa8;
+  --text3:   #3d4f66;
+  --green:   #00e5a0;
+  --green2:  #00b87d;
+  --green-dim: rgba(0,229,160,0.08);
+  --green-glow: rgba(0,229,160,0.18);
+  --blue:    #3d9eff;
+  --blue-dim: rgba(61,158,255,0.1);
+  --orange:  #ff8c42;
+  --orange-dim: rgba(255,140,66,0.1);
+  --red:     #ff3d5a;
+  --red-dim: rgba(255,61,90,0.1);
+  --yellow:  #ffc947;
+  --yellow-dim: rgba(255,201,71,0.1);
+  --purple:  #a855f7;
+  --purple-dim: rgba(168,85,247,0.1);
+  --cyan:    #22d3ee;
+  --r: 5px; --r2: 9px; --r3: 13px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Instrument Sans',sans-serif;font-size:13px;
+  display:flex;flex-direction:column;
+}
+
+/* TOPBAR */
+.topbar{
+  height:48px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;z-index:100;
+}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--green);
+  letter-spacing:-0.5px;display:flex;align-items:center;gap:7px;}
+.logo-icon{width:22px;height:22px;background:var(--green);border-radius:5px;
+  display:flex;align-items:center;justify-content:center;color:#000;font-size:11px;font-weight:900;}
+.sep{width:1px;height:18px;background:var(--border2);}
+.page-label{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  color:var(--text2);letter-spacing:0.3px;}
+.page-label strong{color:var(--text);}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+
+/* BUTTONS */
+.btn{display:flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--r);
+  border:none;cursor:pointer;font-family:'Instrument Sans',sans-serif;
+  font-size:12px;font-weight:500;transition:all .14s;white-space:nowrap;}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid transparent;}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-outline:hover{border-color:var(--border2);color:var(--text);}
+.btn-green{background:var(--green);color:#000;font-weight:700;border:1px solid transparent;}
+.btn-green:hover{background:var(--green2);}
+.btn-green:disabled{opacity:.4;cursor:not-allowed;}
+.btn-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,61,90,.25);}
+.btn-red:hover{background:rgba(255,61,90,.18);}
+.btn-blue{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(61,158,255,.25);}
+.btn-blue:hover{background:rgba(61,158,255,.18);}
+
+/* ENGINE PILLS */
+.engine-group{display:flex;gap:4px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:20px;padding:3px;}
+.engine-pill{padding:3px 10px;border-radius:16px;font-size:11px;font-weight:700;
+  cursor:pointer;transition:all .14s;color:var(--text3);}
+.engine-pill.active-pw{background:rgba(34,211,238,.15);color:var(--cyan);}
+.engine-pill.active-se{background:var(--orange-dim);color:var(--orange);}
+.engine-pill:not(.active-pw):not(.active-se):hover{color:var(--text2);}
+
+/* LAYOUT */
+.layout{flex:1;display:flex;overflow:hidden;}
+
+/* LEFT PANEL — Suite Tree */
+.panel-left{
+  width:260px;flex-shrink:0;background:var(--bg2);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;
+}
+.panel-hdr{
+  height:40px;display:flex;align-items:center;padding:0 14px;gap:8px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.panel-hdr-title{
+  font-family:'Syne',sans-serif;font-size:10px;font-weight:700;
+  color:var(--text3);letter-spacing:.8px;text-transform:uppercase;
+}
+.panel-search{
+  flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  padding:4px 8px;color:var(--text);font-size:12px;font-family:'Instrument Sans',sans-serif;
+  outline:none;
+}
+.panel-search:focus{border-color:var(--border2);}
+.panel-search::placeholder{color:var(--text3);}
+.tree-scroll{flex:1;overflow-y:auto;padding:8px 0;}
+
+.suite-group{margin-bottom:2px;}
+.suite-group-hdr{
+  display:flex;align-items:center;gap:8px;padding:7px 14px;
+  cursor:pointer;color:var(--text2);font-size:12px;font-weight:500;
+  transition:background .1s;user-select:none;
+}
+.suite-group-hdr:hover{background:var(--bg3);}
+.suite-group-hdr .caret{font-size:10px;color:var(--text3);transition:transform .15s;}
+.suite-group-hdr.open .caret{transform:rotate(90deg);}
+.suite-group-name{flex:1;}
+.suite-count{font-size:10px;color:var(--text3);background:var(--bg4);
+  padding:1px 6px;border-radius:10px;}
+
+.tc-item{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 14px 6px 30px;cursor:pointer;
+  transition:background .1s;
+  border-left:2px solid transparent;
+}
+.tc-item:hover{background:var(--bg3);}
+.tc-item.selected{background:var(--green-dim);border-left-color:var(--green);}
+.tc-item.running{background:var(--blue-dim);}
+.tc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dot-idle{background:var(--bg5);}
+.dot-pass{background:var(--green);}
+.dot-fail{background:var(--red);}
+.dot-running{background:var(--blue);animation:dot-pulse 1s infinite;}
+.dot-skip{background:var(--text3);}
+.dot-queued{background:var(--yellow);}
+@keyframes dot-pulse{0%,100%{opacity:.4;transform:scale(.8);}50%{opacity:1;transform:scale(1.2);}}
+.tc-name{font-size:12px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tc-item.selected .tc-name,.tc-item.running .tc-name{color:var(--text);}
+.tc-dur{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);}
+
+/* CENTER */
+.center{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* RUN CONTROLS */
+.run-controls{
+  height:54px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;
+}
+.run-scope{
+  display:flex;align-items:center;gap:6px;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);padding:4px 10px;
+  font-size:12px;color:var(--text2);
+}
+.run-scope strong{color:var(--text);}
+.filter-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.filter-chip{
+  display:flex;align-items:center;gap:4px;
+  padding:3px 9px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--text3);font-size:11px;
+  cursor:pointer;transition:all .12s;font-family:'Instrument Sans',sans-serif;
+}
+.filter-chip:hover{border-color:var(--border2);color:var(--text2);}
+.filter-chip.active{background:var(--green-dim);border-color:rgba(0,229,160,.3);color:var(--green);}
+.parallel-ctrl{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;color:var(--text2);
+}
+.parallel-select{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  color:var(--text);padding:4px 8px;font-size:11px;outline:none;cursor:pointer;
+  font-family:'Instrument Sans',sans-serif;
+}
+.parallel-select option{background:var(--bg2);}
+
+/* PROGRESS BAR */
+.run-progress{
+  height:3px;background:var(--bg3);flex-shrink:0;position:relative;
+}
+.run-progress-fill{
+  height:100%;background:linear-gradient(90deg,var(--green2),var(--green));
+  transition:width .3s ease;box-shadow:0 0 6px var(--green-glow);
+}
+.run-progress-pulse{
+  position:absolute;right:0;top:0;height:100%;width:30px;
+  background:linear-gradient(90deg,transparent,rgba(0,229,160,.5));
+  animation:sweep 1s ease-in-out infinite;display:none;
+}
+.run-progress-pulse.on{display:block;}
+@keyframes sweep{0%{opacity:0;}50%{opacity:1;}100%{opacity:0;}}
+
+/* MAIN CONTENT SPLIT */
+.content-split{flex:1;display:flex;overflow:hidden;}
+
+/* RESULTS AREA */
+.results-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* SUMMARY STRIP */
+.summary-strip{
+  display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;
+  background:var(--bg2);
+}
+.summary-kpi{
+  flex:1;padding:12px 16px;border-right:1px solid var(--border);
+  display:flex;flex-direction:column;gap:2px;
+}
+.summary-kpi:last-child{border-right:none;}
+.kpi-val{
+  font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);
+}
+.kpi-val.green{color:var(--green);}
+.kpi-val.red{color:var(--red);}
+.kpi-val.yellow{color:var(--yellow);}
+.kpi-val.blue{color:var(--blue);}
+.kpi-label{font-size:10px;color:var(--text3);text-transform:uppercase;
+  letter-spacing:.5px;font-weight:700;}
+
+/* RESULTS TABLE */
+.results-scroll{flex:1;overflow-y:auto;}
+.results-table-hdr{
+  display:grid;grid-template-columns:28px 2fr 1fr 90px 90px 90px 100px;
+  padding:8px 16px;background:var(--bg3);border-bottom:1px solid var(--border);
+  font-size:10px;font-weight:700;color:var(--text3);
+  letter-spacing:.6px;text-transform:uppercase;position:sticky;top:0;z-index:5;
+}
+.result-row{
+  display:grid;grid-template-columns:28px 2fr 1fr 90px 90px 90px 100px;
+  padding:9px 16px;border-bottom:1px solid var(--border);
+  align-items:center;cursor:pointer;transition:background .1s;
+}
+.result-row:hover{background:var(--bg3);}
+.result-row.selected{background:var(--bg4);}
+.result-row.running-row{animation:row-pulse 2s ease-in-out infinite;}
+@keyframes row-pulse{0%,100%{background:transparent;}50%{background:rgba(61,158,255,.05);}}
+
+.status-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.si-pass{background:var(--green-dim);color:var(--green);}
+.si-fail{background:var(--red-dim);color:var(--red);}
+.si-run{background:var(--blue-dim);color:var(--blue);animation:dot-pulse 1s infinite;}
+.si-skip{background:var(--bg4);color:var(--text3);}
+.si-queue{background:var(--yellow-dim);color:var(--yellow);}
+.si-idle{background:var(--bg4);color:var(--text3);}
+
+.result-name{font-size:12px;color:var(--text);font-weight:500;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.result-suite{font-size:11px;color:var(--text3);}
+.result-engine{
+  font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;width:fit-content;
+}
+.eng-pw{background:rgba(34,211,238,.1);color:var(--cyan);}
+.eng-se{background:var(--orange-dim);color:var(--orange);}
+.result-dur{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);}
+.result-steps{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);}
+.flaky-tag{
+  font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;
+  background:var(--yellow-dim);color:var(--yellow);margin-left:4px;
+}
+.retry-tag{
+  font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;
+  background:var(--purple-dim);color:var(--purple);margin-left:4px;
+}
+
+/* RIGHT DETAIL PANEL */
+.detail-panel{
+  width:320px;flex-shrink:0;background:var(--bg2);
+  border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;
+}
+.detail-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.dtab{
+  flex:1;padding:10px 6px;text-align:center;
+  font-family:'Syne',sans-serif;font-size:10px;font-weight:700;
+  color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;
+  transition:all .14s;letter-spacing:.3px;text-transform:uppercase;
+}
+.dtab.active{color:var(--green);border-bottom-color:var(--green);}
+.dtab:hover:not(.active){color:var(--text2);}
+.detail-body{flex:1;overflow-y:auto;padding:14px;}
+
+/* STEP TRACE */
+.trace-step{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:7px 0;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .1s;
+  border-radius:var(--r);padding:7px 8px;margin-bottom:2px;
+}
+.trace-step:hover{background:var(--bg3);}
+.trace-step:last-child{border-bottom:none;}
+.trace-num{
+  font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);
+  min-width:20px;padding-top:1px;
+}
+.trace-icon{font-size:12px;flex-shrink:0;padding-top:1px;}
+.trace-body{flex:1;min-width:0;}
+.trace-action{font-size:12px;color:var(--text);font-weight:500;}
+.trace-detail{
+  font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);
+  margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.trace-dur{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);}
+.trace-step.fail-step .trace-action{color:var(--red);}
+.trace-step.fail-step .trace-detail{color:rgba(255,61,90,.6);}
+
+/* ERROR BOX */
+.error-box{
+  background:rgba(255,61,90,.06);border:1px solid rgba(255,61,90,.2);
+  border-radius:var(--r2);padding:12px;margin-bottom:12px;
+}
+.error-box-title{font-size:11px;font-weight:700;color:var(--red);margin-bottom:6px;
+  display:flex;align-items:center;gap:6px;}
+.error-box-msg{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,61,90,.8);
+  line-height:1.6;word-break:break-word;}
+.error-box-loc{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);
+  margin-top:6px;}
+
+/* SCREENSHOT MOCK */
+.screenshot-mock{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);
+  padding:0;overflow:hidden;margin-bottom:12px;cursor:pointer;transition:all .14s;
+}
+.screenshot-mock:hover{border-color:var(--border2);}
+.screenshot-bar{
+  background:var(--bg4);padding:6px 10px;display:flex;align-items:center;gap:6px;
+  border-bottom:1px solid var(--border);
+}
+.browser-dots{display:flex;gap:4px;}
+.browser-dot{width:8px;height:8px;border-radius:50%;}
+.ss-url{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);flex:1;
+  text-align:center;}
+.screenshot-body{padding:12px;height:120px;
+  display:flex;align-items:center;justify-content:center;position:relative;}
+.ss-label{font-size:11px;color:var(--text3);position:absolute;}
+.ss-highlight{
+  position:absolute;border:2px solid var(--red);border-radius:3px;
+  width:160px;height:40px;top:30px;left:40px;
+  box-shadow:0 0 10px rgba(255,61,90,.3);
+}
+.ss-caption{
+  font-size:10px;color:var(--text3);padding:6px 10px;
+  border-top:1px solid var(--border);background:var(--bg4);
+  font-family:'DM Mono',monospace;
+}
+
+/* NETWORK LOG */
+.net-row{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 0;border-bottom:1px solid var(--border);
+  font-family:'DM Mono',monospace;font-size:11px;
+}
+.net-method{
+  font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;
+  min-width:34px;text-align:center;
+}
+.m-get{background:var(--green-dim);color:var(--green);}
+.m-post{background:var(--blue-dim);color:var(--blue);}
+.m-put{background:var(--yellow-dim);color:var(--yellow);}
+.net-status{font-size:11px;min-width:28px;}
+.net-status.ok{color:var(--green);}
+.net-status.err{color:var(--red);}
+.net-url{flex:1;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.net-dur{color:var(--text3);min-width:40px;text-align:right;}
+
+/* HISTORY CHART */
+.history-wrap{margin-bottom:14px;}
+.history-label{font-size:10px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;}
+.history-bars{display:flex;gap:3px;align-items:flex-end;height:60px;}
+.h-bar{
+  flex:1;border-radius:2px 2px 0 0;min-width:6px;
+  cursor:pointer;transition:opacity .1s;
+}
+.h-bar:hover{opacity:.8;}
+.history-meta{
+  display:flex;justify-content:space-between;
+  font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);
+  margin-top:4px;
+}
+
+/* AI TRIAGE */
+.ai-box{
+  background:var(--bg3);border:1px solid rgba(0,229,160,.15);
+  border-radius:var(--r2);padding:12px;margin-bottom:12px;
+}
+.ai-box-title{
+  font-size:11px;font-weight:700;color:var(--green);
+  margin-bottom:8px;display:flex;align-items:center;gap:6px;
+}
+.ai-box-content{font-size:12px;color:var(--text2);line-height:1.65;}
+.ai-spinner{
+  width:12px;height:12px;border-radius:50%;
+  border:2px solid rgba(0,229,160,.2);border-top-color:var(--green);
+  animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* LOG PANEL */
+.log-panel{
+  height:160px;flex-shrink:0;background:var(--bg);
+  border-top:1px solid var(--border);
+}
+.log-hdr{
+  height:34px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:10px;cursor:pointer;
+}
+.log-hdr-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;
+  color:var(--text3);letter-spacing:.7px;text-transform:uppercase;}
+.log-scroll{height:calc(100% - 34px);overflow-y:auto;padding:8px 14px;}
+.log-line{
+  font-family:'DM Mono',monospace;font-size:11px;
+  padding:2px 0;display:flex;gap:10px;color:var(--text3);
+  animation:fade-in .15s ease-out;
+}
+@keyframes fade-in{from{opacity:0;transform:translateY(2px);}to{opacity:1;}}
+.log-ts{color:var(--text3);flex-shrink:0;}
+.log-pass{color:var(--green);}
+.log-fail{color:var(--red);}
+.log-info{color:var(--blue);}
+.log-warn{color:var(--yellow);}
+.log-dim{color:var(--text3);}
+
+/* SCROLLBARS */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--border2);}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:16px;right:16px;z-index:1000;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:10px 16px;font-size:12px;color:var(--text);
+  box-shadow:0 8px 30px rgba(0,0,0,.6);animation:toast-in .2s ease-out;
+}
+@keyframes toast-in{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* TAGS */
+.tag{
+  display:inline-flex;align-items:center;gap:3px;
+  padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;
+  background:var(--bg4);color:var(--text3);border:1px solid var(--border);
+  cursor:pointer;transition:all .12s;
+}
+.tag:hover{border-color:var(--border2);color:var(--text2);}
+.tag.active{background:var(--green-dim);color:var(--green);border-color:rgba(0,229,160,.3);}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo"><div class="logo-icon">▶</div>PlaywrightArc</div>
+  <div class="sep"></div>
+  <div class="page-label">Execution — <strong>E-Commerce Suite</strong></div>
+  <div class="sep"></div>
+  <div class="engine-group">
+    <div class="engine-pill active-pw" id="ep-pw" onclick="setEngine('pw')">⚡ Playwright</div>
+    <div class="engine-pill" id="ep-se" onclick="setEngine('se')">◈ Selenium</div>
+    <div class="engine-pill" id="ep-both" onclick="setEngine('both')">⇌ Both</div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-outline" onclick="showToast('📋 Copied CLI command to clipboard')">⌘ CLI</button>
+    <button class="btn btn-outline" onclick="showToast('📅 Schedule configured')">⏱ Schedule</button>
+    <button class="btn btn-red" id="btnStop" onclick="stopRun()" style="display:none">■ Stop</button>
+    <button class="btn btn-green" id="btnRun" onclick="startRun()">▶ Run Suite</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- LEFT: SUITE TREE -->
+  <div class="panel-left">
+    <div class="panel-hdr">
+      <input class="panel-search" placeholder="Filter tests…" oninput="filterTests(this.value)">
+    </div>
+    <div class="tree-scroll" id="treeScroll"></div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center">
+
+    <!-- RUN CONTROLS -->
+    <div class="run-controls">
+      <div class="run-scope">
+        Run: <strong id="runScopeLabel">All Tests</strong>
+      </div>
+      <div class="filter-chips">
+        <button class="filter-chip active" onclick="toggleFilter(this,'all')">All</button>
+        <button class="filter-chip" onclick="toggleFilter(this,'failed')">Failed</button>
+        <button class="filter-chip" onclick="toggleFilter(this,'flaky')">Flaky</button>
+        <button class="filter-chip" onclick="toggleFilter(this,'skipped')">Skipped</button>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-left:4px;">
+        <span class="tag active" onclick="this.classList.toggle('active')">@checkout</span>
+        <span class="tag" onclick="this.classList.toggle('active')">@auth</span>
+        <span class="tag" onclick="this.classList.toggle('active')">@smoke</span>
+        <span class="tag" onclick="this.classList.toggle('active')">@regression</span>
+      </div>
+      <div class="parallel-ctrl" style="margin-left:auto;">
+        <span>Workers:</span>
+        <select class="parallel-select" id="workerSelect">
+          <option>1</option><option selected>4</option><option>8</option><option>16</option>
+        </select>
+      </div>
+      <button class="btn btn-outline" onclick="rerunFailed()">↻ Rerun Failed</button>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="run-progress">
+      <div class="run-progress-fill" id="progressFill" style="width:0%"></div>
+      <div class="run-progress-pulse" id="progressPulse"></div>
+    </div>
+
+    <!-- CONTENT SPLIT -->
+    <div class="content-split">
+
+      <!-- RESULTS AREA -->
+      <div class="results-area">
+
+        <!-- SUMMARY STRIP -->
+        <div class="summary-strip">
+          <div class="summary-kpi">
+            <div class="kpi-val" id="kpi-total">0</div>
+            <div class="kpi-label">Total</div>
+          </div>
+          <div class="summary-kpi">
+            <div class="kpi-val green" id="kpi-pass">0</div>
+            <div class="kpi-label">Passed</div>
+          </div>
+          <div class="summary-kpi">
+            <div class="kpi-val red" id="kpi-fail">0</div>
+            <div class="kpi-label">Failed</div>
+          </div>
+          <div class="summary-kpi">
+            <div class="kpi-val yellow" id="kpi-flaky">0</div>
+            <div class="kpi-label">Flaky</div>
+          </div>
+          <div class="summary-kpi">
+            <div class="kpi-val blue" id="kpi-running">0</div>
+            <div class="kpi-label">Running</div>
+          </div>
+          <div class="summary-kpi">
+            <div class="kpi-val" id="kpi-dur">0s</div>
+            <div class="kpi-label">Duration</div>
+          </div>
+          <div class="summary-kpi">
+            <div class="kpi-val green" id="kpi-rate">–</div>
+            <div class="kpi-label">Pass Rate</div>
+          </div>
+        </div>
+
+        <!-- RESULTS TABLE -->
+        <div class="results-scroll">
+          <div class="results-table-hdr">
+            <span></span>
+            <span>Test Case</span>
+            <span>Suite</span>
+            <span>Engine</span>
+            <span>Duration</span>
+            <span>Steps</span>
+            <span>Actions</span>
+          </div>
+          <div id="resultsBody"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: DETAIL PANEL -->
+      <div class="detail-panel">
+        <div class="detail-tabs">
+          <div class="dtab active" onclick="switchDTab(this,'steps')">Steps</div>
+          <div class="dtab" onclick="switchDTab(this,'errors')">Errors</div>
+          <div class="dtab" onclick="switchDTab(this,'network')">Network</div>
+          <div class="dtab" onclick="switchDTab(this,'history')">History</div>
+        </div>
+        <div class="detail-body" id="detailBody">
+          <div style="text-align:center;padding:40px 0;color:var(--text3);">
+            <div style="font-size:28px;margin-bottom:8px;">⊙</div>
+            <div style="font-size:12px;">Select a test to view details</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content-split -->
+
+    <!-- LOG PANEL -->
+    <div class="log-panel" id="logPanel">
+      <div class="log-hdr" onclick="toggleLog()">
+        <span class="log-hdr-title">Live Log</span>
+        <span id="logStatus" style="font-size:10px;background:var(--bg4);color:var(--text3);padding:2px 8px;border-radius:10px;font-family:'DM Mono',monospace;">IDLE</span>
+        <span style="margin-left:auto;color:var(--text3);font-size:11px;" id="logToggle">▲</span>
+      </div>
+      <div class="log-scroll" id="logScroll"></div>
+    </div>
+
+  </div><!-- /center -->
+</div><!-- /layout -->
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const SUITES = [
+  { name: 'Checkout Flows', tests: [
+    { id:'tc1', name:'Guest Checkout — Add to Cart', engine:'pw', tags:['checkout','smoke'] },
+    { id:'tc2', name:'Registered Checkout — PayPal', engine:'pw', tags:['checkout'] },
+    { id:'tc3', name:'Checkout with Coupon Code', engine:'se', tags:['checkout'] },
+    { id:'tc4', name:'Cart Quantity Update', engine:'pw', tags:['checkout','smoke'] },
+    { id:'tc5', name:'Remove Item from Cart', engine:'pw', tags:['checkout'] },
+  ]},
+  { name: 'Authentication', tests: [
+    { id:'tc6', name:'Login — Valid Credentials', engine:'pw', tags:['auth','smoke'] },
+    { id:'tc7', name:'Login — Invalid Password', engine:'pw', tags:['auth'] },
+    { id:'tc8', name:'Password Reset Flow', engine:'se', tags:['auth'] },
+    { id:'tc9', name:'Session Timeout', engine:'pw', tags:['auth'] },
+  ]},
+  { name: 'Product Search', tests: [
+    { id:'tc10', name:'Search by Keyword', engine:'pw', tags:['search','smoke'] },
+    { id:'tc11', name:'Filter by Category', engine:'pw', tags:['search'] },
+    { id:'tc12', name:'Sort by Price', engine:'pw', tags:['search'] },
+    { id:'tc13', name:'Empty Search Results', engine:'se', tags:['search'] },
+  ]},
+  { name: 'API Tests', tests: [
+    { id:'tc14', name:'POST /api/cart — Add Item', engine:'pw', tags:['api','smoke'] },
+    { id:'tc15', name:'GET /api/orders — List', engine:'pw', tags:['api'] },
+    { id:'tc16', name:'DELETE /api/cart — Clear', engine:'pw', tags:['api'] },
+  ]},
+];
+
+const STEP_TRACES = {
+  pass: [
+    { action:'Navigate To', detail:'${BASE_URL}/products', dur:'1.2s', ok:true },
+    { action:'Wait Network Idle', detail:'networkidle', dur:'0.3s', ok:true },
+    { action:'Click', detail:'[data-testid="product-card"]:first-child', dur:'0.1s', ok:true },
+    { action:'Assert Visible', detail:'.product-title', dur:'0.2s', ok:true },
+    { action:'Click', detail:'button#add-to-cart', dur:'0.1s', ok:true },
+    { action:'Assert Text', detail:'.cart-badge → "1"', dur:'0.3s', ok:true },
+    { action:'Screenshot', detail:'cart-badge-verified.png', dur:'0.4s', ok:true },
+  ],
+  fail: [
+    { action:'Navigate To', detail:'${BASE_URL}/checkout', dur:'1.1s', ok:true },
+    { action:'Wait Network Idle', detail:'networkidle', dur:'0.4s', ok:true },
+    { action:'Click', detail:'button#apply-coupon', dur:'0.1s', ok:true },
+    { action:'Type Text', detail:'input#coupon-field → "SAVE20"', dur:'0.2s', ok:true },
+    { action:'Click', detail:'button#submit-coupon', dur:'0.1s', ok:true },
+    { action:'Assert Text', detail:'.coupon-feedback → "Applied"', dur:'30.0s', ok:false },
+    { action:'Screenshot', detail:'failure-coupon-timeout.png', dur:'0.3s', ok:true },
+  ],
+};
+
+const NET_ROWS = [
+  { method:'GET', status:200, url:'/api/products?page=1', dur:'142ms' },
+  { method:'POST', status:200, url:'/api/cart/add', dur:'87ms' },
+  { method:'GET', status:200, url:'/api/cart', dur:'63ms' },
+  { method:'GET', status:404, url:'/api/coupon/SAVE20', dur:'211ms' },
+  { method:'POST', status:500, url:'/api/coupon/apply', dur:'30041ms' },
+  { method:'GET', status:200, url:'/api/user/profile', dur:'55ms' },
+];
+
+const HISTORY_DATA = [92,88,95,91,84,97,93,89,96,98,81,94,87,99,91,86,88,92,95,78];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let results = {};       // id → { status, dur, steps, flaky, retries }
+let running = false;
+let runTimer = null;
+let elapsed = 0;
+let elapsedTimer = null;
+let selectedTest = null;
+let currentDTab = 'steps';
+let engine = 'pw';
+let logOpen = true;
+
+// Init results
+SUITES.forEach(s => s.tests.forEach(t => {
+  results[t.id] = { status:'idle', dur:null, steps:null, flaky:false, retries:0 };
+}));
+
+// ── TREE ──────────────────────────────────────────────────────────────────────
+function renderTree(filter='') {
+  const wrap = document.getElementById('treeScroll');
+  const fl = filter.toLowerCase();
+  wrap.innerHTML = SUITES.map(suite => {
+    const filtered = suite.tests.filter(t => !fl || t.name.toLowerCase().includes(fl));
+    if (!filtered.length) return '';
+    const open = !fl ? 'open' : 'open';
+    return `<div class="suite-group">
+      <div class="suite-group-hdr ${open}" onclick="toggleSuite(this)">
+        <span class="caret">▶</span>
+        <span class="suite-group-name">${suite.name}</span>
+        <span class="suite-count">${filtered.length}</span>
+      </div>
+      <div class="suite-tests">
+        ${filtered.map(t => {
+          const r = results[t.id];
+          const dotCls = r.status === 'pass' ? 'dot-pass' : r.status === 'fail' ? 'dot-fail'
+            : r.status === 'running' ? 'dot-running' : r.status === 'queued' ? 'dot-queued'
+            : r.status === 'skipped' ? 'dot-skip' : 'dot-idle';
+          const sel = selectedTest === t.id ? 'selected' : r.status === 'running' ? 'running' : '';
+          const dur = r.dur ? `<span class="tc-dur">${r.dur}</span>` : '';
+          return `<div class="tc-item ${sel}" onclick="selectTest('${t.id}')">
+            <div class="tc-dot ${dotCls}"></div>
+            <span class="tc-name">${t.name}</span>
+            ${dur}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleSuite(hdr) {
+  hdr.classList.toggle('open');
+  const tests = hdr.nextElementSibling;
+  tests.style.display = hdr.classList.contains('open') ? '' : 'none';
+}
+
+function filterTests(val) { renderTree(val); }
+
+// ── RESULTS TABLE ─────────────────────────────────────────────────────────────
+function allTests() {
+  return SUITES.flatMap(s => s.tests);
+}
+
+function renderResults() {
+  const tests = allTests();
+  let pass=0,fail=0,flaky=0,runningN=0,total=0;
+  tests.forEach(t => {
+    const r = results[t.id];
+    total++;
+    if(r.status==='pass') pass++;
+    if(r.status==='fail') fail++;
+    if(r.flaky) flaky++;
+    if(r.status==='running') runningN++;
+  });
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-pass').textContent = pass;
+  document.getElementById('kpi-fail').textContent = fail;
+  document.getElementById('kpi-flaky').textContent = flaky;
+  document.getElementById('kpi-running').textContent = runningN;
+  const done = pass+fail;
+  document.getElementById('kpi-rate').textContent = done ? Math.round(pass/done*100)+'%' : '–';
+  document.getElementById('kpi-dur').textContent = elapsed+'s';
+
+  const body = document.getElementById('resultsBody');
+  body.innerHTML = tests.map(t => {
+    const r = results[t.id];
+    const suite = SUITES.find(s => s.tests.includes(t));
+    const engLabel = t.engine === 'pw' ? '<span class="result-engine eng-pw">Playwright</span>'
+      : '<span class="result-engine eng-se">Selenium</span>';
+    let siCls='si-idle', siLabel='–';
+    if(r.status==='pass'){siCls='si-pass';siLabel='✓';}
+    else if(r.status==='fail'){siCls='si-fail';siLabel='✗';}
+    else if(r.status==='running'){siCls='si-run';siLabel='◉';}
+    else if(r.status==='queued'){siCls='si-queue';siLabel='◌';}
+    else if(r.status==='skipped'){siCls='si-skip';siLabel='–';}
+    const dur = r.dur || '–';
+    const steps = r.steps ? r.steps+' steps' : '–';
+    const flakyTag = r.flaky ? '<span class="flaky-tag">FLAKY</span>' : '';
+    const retryTag = r.retries > 0 ? `<span class="retry-tag">↺${r.retries}</span>` : '';
+    const rowCls = selectedTest===t.id ? 'selected' : r.status==='running' ? 'running-row' : '';
+    return `<div class="result-row ${rowCls}" onclick="selectTest('${t.id}')">
+      <div class="status-icon ${siCls}">${siLabel}</div>
+      <div>
+        <div class="result-name">${t.name}${flakyTag}${retryTag}</div>
+        <div class="result-suite">${suite?.name||''}</div>
+      </div>
+      <div>${engLabel}</div>
+      <div class="result-dur">${dur}</div>
+      <div class="result-steps">${steps}</div>
+      <div style="display:flex;gap:5px;">
+        ${r.status==='fail'?`<button class="btn btn-outline" style="padding:3px 7px;font-size:11px;" onclick="event.stopPropagation();rerunOne('${t.id}')">↻</button>`:''}
+        <button class="btn btn-ghost" style="padding:3px 7px;font-size:11px;" onclick="event.stopPropagation();showToast('Opening trace viewer…')">Trace</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── SELECT TEST ───────────────────────────────────────────────────────────────
+function selectTest(id) {
+  selectedTest = id;
+  renderTree();
+  renderResults();
+  renderDetail();
+}
+
+function switchDTab(el, tab) {
+  document.querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentDTab = tab;
+  renderDetail();
+}
+
+function renderDetail() {
+  if (!selectedTest) return;
+  const t = SUITES.flatMap(s=>s.tests).find(t=>t.id===selectedTest);
+  const r = results[selectedTest];
+  const body = document.getElementById('detailBody');
+
+  if (currentDTab === 'steps') {
+    if (r.status === 'idle' || r.status === 'queued') {
+      body.innerHTML = `<div style="text-align:center;padding:30px 0;color:var(--text3);">
+        <div style="font-size:22px;margin-bottom:8px;">⏳</div>
+        <div style="font-size:12px;">Test queued — waiting to run</div></div>`;
+      return;
+    }
+    if (r.status === 'running') {
+      body.innerHTML = `<div style="text-align:center;padding:30px 0;color:var(--blue);">
+        <div class="ai-spinner" style="width:20px;height:20px;margin:0 auto 10px;border-color:var(--blue-dim);border-top-color:var(--blue);"></div>
+        <div style="font-size:12px;">Running…</div></div>`;
+      return;
+    }
+    const trace = r.status === 'fail' ? STEP_TRACES.fail : STEP_TRACES.pass;
+    body.innerHTML = `
+      <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;
+        color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">
+        Step Trace — ${t.name}
+      </div>
+      ${trace.map((s,i) => `
+        <div class="trace-step ${!s.ok?'fail-step':''}">
+          <span class="trace-num">${String(i+1).padStart(2,'0')}</span>
+          <span class="trace-icon">${s.ok?'✓':'✗'}</span>
+          <div class="trace-body">
+            <div class="trace-action">${s.action}</div>
+            <div class="trace-detail">${s.detail}</div>
+          </div>
+          <span class="trace-dur">${s.dur}</span>
+        </div>`).join('')}`;
+  }
+
+  else if (currentDTab === 'errors') {
+    if (r.status !== 'fail') {
+      body.innerHTML = `<div style="text-align:center;padding:30px 0;color:var(--text3);">
+        <div style="font-size:22px;margin-bottom:8px;">✓</div>
+        <div style="font-size:12px;color:var(--green);">No errors — test passed</div></div>`;
+      return;
+    }
+    body.innerHTML = `
+      <div class="error-box">
+        <div class="error-box-title">✗ Assertion Failed</div>
+        <div class="error-box-msg">TimeoutError: Locator .coupon-feedback expected text "Applied" — got nothing after 30000ms</div>
+        <div class="error-box-loc">at TC_CheckoutWithCoupon.ts:47 — assert_text</div>
+      </div>
+      <div class="screenshot-mock" onclick="showToast('Opening screenshot…')">
+        <div class="screenshot-bar">
+          <div class="browser-dots">
+            <div class="browser-dot" style="background:#ff5f57"></div>
+            <div class="browser-dot" style="background:#febc2e"></div>
+            <div class="browser-dot" style="background:#28c840"></div>
+          </div>
+          <div class="ss-url">localhost:3000/checkout</div>
+        </div>
+        <div class="screenshot-body">
+          <div style="width:240px;height:80px;background:var(--bg4);border-radius:4px;border:1px solid var(--border);position:relative;">
+            <div class="ss-highlight"></div>
+          </div>
+        </div>
+        <div class="ss-caption">failure-coupon-timeout.png — step 6</div>
+      </div>
+      <div class="ai-box" id="aiTriageBox">
+        <div class="ai-box-title"><div class="ai-spinner"></div> ✦ AI Failure Triage</div>
+        <div class="ai-box-content" id="aiTriageContent">Analyzing failure…</div>
+      </div>`;
+    fetchAITriage(t.name);
+  }
+
+  else if (currentDTab === 'network') {
+    body.innerHTML = `
+      <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;
+        color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">
+        Network Requests
+      </div>
+      ${NET_ROWS.map(n => `
+        <div class="net-row">
+          <span class="net-method ${n.method==='GET'?'m-get':n.method==='POST'?'m-post':'m-put'}">${n.method}</span>
+          <span class="net-status ${n.status<400?'ok':'err'}">${n.status}</span>
+          <span class="net-url">${n.url}</span>
+          <span class="net-dur">${n.dur}</span>
+        </div>`).join('')}`;
+  }
+
+  else if (currentDTab === 'history') {
+    const max = Math.max(...HISTORY_DATA);
+    body.innerHTML = `
+      <div class="history-wrap">
+        <div class="history-label">Pass Rate — Last 20 Runs</div>
+        <div class="history-bars">
+          ${HISTORY_DATA.map((v,i) => {
+            const h = Math.round((v/max)*55)+5;
+            const col = v>=90?'var(--green)':v>=75?'var(--yellow)':'var(--red)';
+            return `<div class="h-bar" style="height:${h}px;background:${col};" title="${v}% pass rate" onclick="showToast('Run ${i+1}: ${v}% pass rate')"></div>`;
+          }).join('')}
+        </div>
+        <div class="history-meta"><span>20 runs ago</span><span>Latest</span></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;">
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--green);">91%</div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Avg Pass Rate</div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;">
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--yellow);">3</div>
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Flaky Runs</div>
+        </div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;">
+        <div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Avg Duration Trend</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);line-height:1.8;">
+          <div>Last 7 days avg: <span style="color:var(--green);">2.4s</span></div>
+          <div>Slowest run: <span style="color:var(--yellow);">4.1s</span> (2 days ago)</div>
+          <div>Fastest run: <span style="color:var(--green);">1.8s</span></div>
+        </div>
+      </div>`;
+  }
+}
+
+// ── AI TRIAGE ─────────────────────────────────────────────────────────────────
+async function fetchAITriage(testName) {
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:300,
+        messages:[{role:'user', content:`A Playwright test called "${testName}" failed with: TimeoutError: Locator .coupon-feedback expected text "Applied" — got nothing after 30000ms. The failing step was asserting a coupon feedback message after clicking submit. Give me 3 short, specific debugging suggestions. Plain text, no markdown, use → bullets.`}]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || 'Unable to analyze.';
+    document.getElementById('aiTriageContent').textContent = text;
+  } catch(e) {
+    document.getElementById('aiTriageContent').textContent = '→ Check if coupon API endpoint is returning 500 (network tab shows timeout)\n→ Verify selector .coupon-feedback exists in DOM after submit\n→ Coupon may be async — try waitForSelector before asserting text';
+  }
+}
+
+// ── RUN ENGINE ────────────────────────────────────────────────────────────────
+const RUN_SEQUENCE = [
+  'tc6','tc1','tc10','tc14','tc15','tc6',
+  'tc7','tc2','tc11','tc16','tc3','tc8',
+  'tc4','tc12','tc9','tc13','tc5','tc3',
+];
+
+let runQ = [];
+let activeWorkers = 0;
+
+function startRun() {
+  if (running) return;
+  running = true;
+  elapsed = 0;
+  document.getElementById('btnRun').style.display = 'none';
+  document.getElementById('btnStop').style.display = '';
+  document.getElementById('progressPulse').classList.add('on');
+  document.getElementById('logStatus').textContent = 'RUNNING';
+  document.getElementById('logStatus').style.background = 'var(--blue-dim)';
+  document.getElementById('logStatus').style.color = 'var(--blue)';
+
+  // Reset all
+  SUITES.forEach(s => s.tests.forEach(t => {
+    results[t.id] = { status:'queued', dur:null, steps:null, flaky:false, retries:0 };
+  }));
+  renderTree(); renderResults();
+
+  elapsedTimer = setInterval(() => {
+    elapsed++;
+    document.getElementById('kpi-dur').textContent = elapsed+'s';
+  }, 1000);
+
+  runQ = [...SUITES.flatMap(s=>s.tests).map(t=>t.id)];
+  const workers = parseInt(document.getElementById('workerSelect').value);
+  for (let i = 0; i < workers; i++) spawnWorker();
+}
+
+function spawnWorker() {
+  if (!running || !runQ.length) {
+    if (!runQ.length && activeWorkers <= 0) finishRun();
+    return;
+  }
+  const id = runQ.shift();
+  activeWorkers++;
+  runTest(id, () => {
+    activeWorkers--;
+    spawnWorker();
+  });
+}
+
+function runTest(id, done) {
+  results[id] = { ...results[id], status:'running' };
+  const t = SUITES.flatMap(s=>s.tests).find(t=>t.id===id);
+  logLine('info', `▶ Starting: ${t.name}`);
+  renderTree(); renderResults();
+  if (selectedTest === id) renderDetail();
+
+  const dur = 800 + Math.random()*1800;
+  setTimeout(() => {
+    if (!running) { done(); return; }
+    const failChance = id === 'tc3' ? 0.8 : id === 'tc13' ? 0.4 : 0.12;
+    const flakyChance = 0.1;
+    const isFlaky = Math.random() < flakyChance;
+    let isFail = Math.random() < failChance;
+    const steps = Math.floor(5 + Math.random()*10);
+    const durStr = (dur/1000).toFixed(1)+'s';
+
+    if (isFlaky && !isFail) {
+      results[id] = { status:'pass', dur:durStr, steps, flaky:true, retries:1 };
+      logLine('warn', `⚠ Flaky (passed on retry): ${t.name}`);
+    } else if (isFail) {
+      results[id] = { status:'fail', dur:durStr, steps, flaky:false, retries:0 };
+      logLine('fail', `✗ FAILED: ${t.name}`);
+    } else {
+      results[id] = { status:'pass', dur:durStr, steps, flaky:false, retries:0 };
+      logLine('pass', `✓ Passed: ${t.name} (${durStr})`);
+    }
+
+    const total = SUITES.flatMap(s=>s.tests).length;
+    const done2 = Object.values(results).filter(r=>r.status==='pass'||r.status==='fail').length;
+    document.getElementById('progressFill').style.width = (done2/total*100)+'%';
+
+    renderTree(); renderResults();
+    if (selectedTest === id) renderDetail();
+    done();
+  }, dur);
+}
+
+function finishRun() {
+  running = false;
+  clearInterval(elapsedTimer);
+  document.getElementById('btnRun').style.display = '';
+  document.getElementById('btnStop').style.display = 'none';
+  document.getElementById('progressPulse').classList.remove('on');
+  const fails = Object.values(results).filter(r=>r.status==='fail').length;
+  document.getElementById('logStatus').textContent = fails ? 'FAILED' : 'PASSED';
+  document.getElementById('logStatus').style.background = fails ? 'var(--red-dim)' : 'var(--green-dim)';
+  document.getElementById('logStatus').style.color = fails ? 'var(--red)' : 'var(--green)';
+  logLine(fails?'fail':'pass', `Run complete — ${Object.values(results).filter(r=>r.status==='pass').length} passed, ${fails} failed`);
+  showToast(fails ? `✗ ${fails} test${fails>1?'s':''} failed` : '✓ All tests passed');
+}
+
+function stopRun() {
+  running = false;
+  runQ = [];
+  clearInterval(elapsedTimer);
+  SUITES.forEach(s => s.tests.forEach(t => {
+    if (results[t.id].status === 'queued' || results[t.id].status === 'running')
+      results[t.id].status = 'skipped';
+  }));
+  document.getElementById('btnRun').style.display = '';
+  document.getElementById('btnStop').style.display = 'none';
+  document.getElementById('progressPulse').classList.remove('on');
+  document.getElementById('logStatus').textContent = 'STOPPED';
+  document.getElementById('logStatus').style.background = 'var(--yellow-dim)';
+  document.getElementById('logStatus').style.color = 'var(--yellow)';
+  logLine('warn','⏹ Run stopped by user');
+  renderTree(); renderResults();
+}
+
+function rerunFailed() {
+  const failed = Object.entries(results).filter(([,r])=>r.status==='fail').map(([id])=>id);
+  if (!failed.length) { showToast('No failed tests to rerun'); return; }
+  if (running) return;
+  running = true;
+  document.getElementById('btnRun').style.display = 'none';
+  document.getElementById('btnStop').style.display = '';
+  document.getElementById('progressPulse').classList.add('on');
+  document.getElementById('logStatus').textContent = 'RUNNING';
+  document.getElementById('logStatus').style.background = 'var(--blue-dim)';
+  document.getElementById('logStatus').style.color = 'var(--blue)';
+  failed.forEach(id => results[id] = { ...results[id], status:'queued' });
+  runQ = [...failed];
+  renderTree(); renderResults();
+  logLine('info', `↻ Rerunning ${failed.length} failed test${failed.length>1?'s':''}`);
+  const workers = parseInt(document.getElementById('workerSelect').value);
+  for (let i = 0; i < Math.min(workers, failed.length); i++) spawnWorker();
+}
+
+function rerunOne(id) {
+  if (running) return;
+  running = true;
+  document.getElementById('btnRun').style.display = 'none';
+  document.getElementById('btnStop').style.display = '';
+  document.getElementById('progressPulse').classList.add('on');
+  results[id] = { ...results[id], status:'queued' };
+  runQ = [id];
+  renderTree(); renderResults();
+  spawnWorker();
+}
+
+// ── ENGINE ────────────────────────────────────────────────────────────────────
+function setEngine(e) {
+  engine = e;
+  ['pw','se','both'].forEach(k => {
+    const el = document.getElementById('ep-'+k);
+    el.className = 'engine-pill' + (k===e ? (k==='pw'?' active-pw':k==='se'?' active-se':' active-pw') : '');
+  });
+  showToast(`Engine: ${e==='pw'?'Playwright':e==='se'?'Selenium':'Both (parallel)'}`);
+}
+
+// ── FILTER ────────────────────────────────────────────────────────────────────
+function toggleFilter(el, type) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  showToast(`Filter: ${type}`);
+}
+
+// ── LOG ───────────────────────────────────────────────────────────────────────
+function logLine(type, msg) {
+  const log = document.getElementById('logScroll');
+  const t = new Date().toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  const cls = type==='pass'?'log-pass':type==='fail'?'log-fail':type==='warn'?'log-warn':type==='info'?'log-info':'log-dim';
+  line.innerHTML = `<span class="log-ts">${t}</span><span class="${cls}">${msg}</span>`;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+function toggleLog() {
+  const scroll = document.getElementById('logScroll');
+  const toggle = document.getElementById('logToggle');
+  const panel = document.getElementById('logPanel');
+  const isOpen = scroll.style.display !== 'none';
+  scroll.style.display = isOpen ? 'none' : '';
+  toggle.textContent = isOpen ? '▲' : '▼';
+  panel.style.height = isOpen ? '34px' : '160px';
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let toastT;
+function showToast(msg) {
+  clearTimeout(toastT);
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.opacity = '1';
+  toastT = setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t?.remove(),300); }, 2600);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderTree();
+renderResults();
+logLine('dim', 'Execution dashboard ready — click ▶ Run Suite to start');
+</script>
+</body>
+</html>
